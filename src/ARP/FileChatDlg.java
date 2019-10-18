@@ -227,12 +227,13 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 										hexStringToByteArray(mac_address.getText()));
 								String iptemp, mactemp, result = "";
 								for (int i = 0; i < ((ARPLayer) m_LayerMgr.GetLayer("ARP")).proxyTable.length; i++) {
-									iptemp = byteArrayToHexString(
+									iptemp = byteArrayToIPString(
 											((ARPLayer) m_LayerMgr.GetLayer("ARP")).proxyTable[i].ip_addr.addr);
 									mactemp = byteArrayToHexString(
 											((ARPLayer) m_LayerMgr.GetLayer("ARP")).proxyTable[i].mac_addr.addr);
-									result += ip + iptemp + " " + mactemp + "\n";
+									result += iptemp + " " + mactemp + "\n";
 									Entry.append(result);
+									dispose();
 								}
 							}
 						});
@@ -507,6 +508,19 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 	 * byteArrayToHexString(mac_iddr); String result = ip+" "+mac+" "+status+"\n";
 	 * ChattingArea.append(result); }
 	 */
+	
+	public static String byteArrayToIPString(byte[] bytes) {
+		StringBuilder result = new StringBuilder();
+		int temp;
+		for(int i = 0; i < bytes.length; i++) {
+			temp = bytes[i] & 0xFF;
+			if(i != bytes.length-1)
+				result.append(Integer.toString(temp)+".");
+			else
+				result.append(Integer.toString(temp));
+		}
+		return result.toString();
+	}
 	public static String byteArrayToHexString(byte[] bytes) {
 		StringBuilder sb = new StringBuilder();
 
