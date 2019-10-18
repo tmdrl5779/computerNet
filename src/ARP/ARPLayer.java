@@ -83,13 +83,14 @@ public class ARPLayer implements BaseLayer {
 	}
 	
 	Runnable timer_3min = new Runnable() {
+		byte[] temp = ARPRequest.ip_dstaddr.addr;
 		public void run() {
 				try {
 					Thread.sleep(1000*60*3);
 					if(search_table(ARPRequest.ip_dstaddr.addr) == null) {//3遺꾩씠 吏��궃 �떆�젏�뿉�꽌 紐⑹쟻吏��쓽 �씠�뜑�꽬 二쇱냼媛� 異붽� �븞 �릺�뼱�엳�쓣 寃쎌슦
 						System.out.println("TimeOut");
-						((FileChatDlg)p_aUpperLayer.get(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "", 1);//�젣嫄�
-						Del_ip_addr(ARPRequest.ip_dstaddr.addr);
+						((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(temp, null, "", 1);//�젣嫄�
+						Del_ip_addr(temp);
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -104,7 +105,7 @@ public class ARPLayer implements BaseLayer {
 		public void run() {
 				try {
 					Thread.sleep(1000*60*20);
-					((FileChatDlg)p_aUpperLayer.get(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "", 1);//�젣嫄�
+					((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "", 1);//�젣嫄�
 					Del_ip_addr(this.ip_addr);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -287,7 +288,7 @@ public class ARPLayer implements BaseLayer {
 			// destination IP addr = mine
 			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 24, 28))) {
 
-				((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 0);//add
+				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 0);//add
 
 				// 異쒕젰??
 				Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
@@ -335,7 +336,7 @@ public class ARPLayer implements BaseLayer {
 			// 異쒕컻吏� ip二쇱냼�� mac二쇱냼瑜� �뀒�씠釉붿뿉 ���옣�븿
 			Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
 			Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
-			((FileChatDlg) this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18),
+			((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18),
 					Arrays.copyOfRange(input, 8, 14), "complete", 0);// add
 
 			// ip �씠�뜑�꽬 異쒕젰
