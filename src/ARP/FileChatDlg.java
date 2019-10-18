@@ -442,6 +442,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 	String[] areaTable = new String[0];
 
 	public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String status, int index) {// �빊遺쏙옙 0, 占쎌젫椰꾬옙 1, 癰귨옙野껓옙 2
+		ChattingArea.setText("");
 		String ip = byteArrayToHexString_ip_mac(ip_addr);
 		String mac = "??????????";
 		if (mac_iddr != null)

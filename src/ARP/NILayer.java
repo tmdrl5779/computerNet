@@ -14,7 +14,6 @@ import org.jnetpcap.PcapIf;
 import org.jnetpcap.packet.PcapPacket;
 import org.jnetpcap.packet.PcapPacketHandler;
 
-import com.sun.xml.internal.bind.v2.model.core.Adapter;
 
 public class NILayer implements BaseLayer {
 	public int nUpperLayerCount = 0;

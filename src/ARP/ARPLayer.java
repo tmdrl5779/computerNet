@@ -82,6 +82,8 @@ public class ARPLayer implements BaseLayer {
 		}
 	}
 	
+	_ARP_HEADER ARPRequest = new _ARP_HEADER();
+	
 	Runnable timer_3min = new Runnable() {
 		byte[] temp = ARPRequest.ip_dstaddr.addr;
 		public void run() {
@@ -114,7 +116,7 @@ public class ARPLayer implements BaseLayer {
 		}
 	};
 	
-	_ARP_HEADER ARPRequest = new _ARP_HEADER();
+	
 	
 	
 	public void set_my_ip_addr(byte[] ip_addr) {
