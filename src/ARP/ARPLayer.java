@@ -152,12 +152,19 @@ public class ARPLayer implements BaseLayer {
 		return null;
 	}
 	
-	public void Proxy_Add_ipAndMac_addr(byte[] ip_addr, byte[] enet_addr) {// 프록시 테이블에 아이피 주소와 맥주소를 저장
+	public void Proxy_Add_ipAndMac_addr(String ip_input, byte[] mac_input) {// 프록시 테이블에 아이피 주소와 맥주소를 저장
+		StringTokenizer st = new StringTokenizer(ip_input, ".");
+		byte[] ip_addr = new byte[4];
+		
+		for (int i = 0; i < 4; i++) {
+			ip_addr[i] = (byte) Integer.parseInt(st.nextToken());
+		}
+		
 		Array[] temp = new Array[proxyTable.length + 1];
 		for(int i = 0; i < proxyTable.length; i ++)
 			temp[i] = proxyTable[i];
 		proxyTable = temp.clone();
-		proxyTable[proxyTable.length - 1] = new Array(new _IP_ADDR(ip_addr), new _ETHERNET_ADDR(enet_addr));
+		proxyTable[proxyTable.length - 1] = new Array(new _IP_ADDR(ip_addr), new _ETHERNET_ADDR(mac_input));
 	}
 	
 	public void Proxy_Del_ipAndMac_addr(byte[] ip_addr, byte[] enet_addr) {// 프록시 테이블 인덱스 삭제
