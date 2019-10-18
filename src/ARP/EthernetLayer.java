@@ -79,22 +79,47 @@ public class EthernetLayer implements BaseLayer {
 		byte[] buf = new byte[length + 14];
 		byte[] srctemp = Header.enet_srcaddr.addr;
 		byte[] dsttemp = Header.enet_dstaddr.addr;
+		
+		if (input[6] == (byte)0x00 && input[7] == (byte)0x02) { // ARP reply
+			buf[0] = dsttemp[0];
+			buf[1] = dsttemp[1];
+			buf[2] = dsttemp[2];
+			buf[3] = dsttemp[3];
+			buf[4] = dsttemp[4];
+			buf[5] = dsttemp[5];
+			buf[6] = srctemp[0];
+			buf[7] = srctemp[1];
+			buf[8] = srctemp[2];
+			buf[9] = srctemp[3];
+			buf[10] = srctemp[4];
+			buf[11] = srctemp[5];
+			buf[12] = (byte)0x08;
+			buf[13] = (byte)0x06;
+		}
+		else {
+			buf[0] = (byte)0xff;
+			buf[1] = (byte)0xff;
+			buf[2] = (byte)0xff;
+			buf[3] = (byte)0xff;
+			buf[4] = (byte)0xff;
+			buf[5] = (byte)0xff;
+			buf[6] = srctemp[0];
+			buf[7] = srctemp[1];
+			buf[8] = srctemp[2];
+			buf[9] = srctemp[3];
+			buf[10] = srctemp[4];
+			buf[11] = srctemp[5];
+			buf[12] = (byte)0x08;
+			buf[13] = (byte)0x06;
+		}
 
-		buf[0] = dsttemp[0];
-		buf[1] = dsttemp[1];
-		buf[2] = dsttemp[2];
-		buf[3] = dsttemp[3];
-		buf[4] = dsttemp[4];
-		buf[5] = dsttemp[5];
-		buf[6] = srctemp[0];
-		buf[7] = srctemp[1];
-		buf[8] = srctemp[2];
-		buf[9] = srctemp[3];
-		buf[10] = srctemp[4];
-		buf[11] = srctemp[5];
-		buf[12] = (byte)0x08;
-		buf[13] = (byte)0x06;
-
+//		buf[0] = dsttemp[0];
+//		buf[1] = dsttemp[1];
+//		buf[2] = dsttemp[2];
+//		buf[3] = dsttemp[3];
+//		buf[4] = dsttemp[4];
+//		buf[5] = dsttemp[5];
+		
 		for (int i = 0; i < length; i++)
 			buf[14 + i] = input[i];
 
