@@ -1,8 +1,12 @@
 package ARP;
 
+import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 public class EthernetLayer implements BaseLayer {
@@ -135,9 +139,9 @@ public class EthernetLayer implements BaseLayer {
 		return true;
 	}
 	
-	public boolean SendARP(byte[] input, int length) {
+	public boolean SendARP(byte[] input, int length) throws IOException{
 		byte[] bytes = ObjToByte_ARP(ethernetHeader, input, length);
-		((NILayer) this.GetUnderLayer()).SetAdapterNumber(7);
+		((NILayer)this.GetUnderLayer()).SetAdapterNumber();
 		this.GetUnderLayer().Send(bytes, length + 14);
 		return true;
 	}
@@ -302,4 +306,5 @@ public class EthernetLayer implements BaseLayer {
 		}
 		return data;
 	}
+	
 }

@@ -1,5 +1,6 @@
 package ARP;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -218,7 +219,7 @@ public class ARPLayer implements BaseLayer {
 		if(newMacAddr != my_enet_addr) GratuitousFlag = true;
 		
 	}
-	public boolean Send(byte[] input, int length) {
+	public boolean Send(byte[] input, int length){
 
 		// updated MAC addr
 		if(GratuitousFlag == true){
@@ -252,7 +253,13 @@ public class ARPLayer implements BaseLayer {
 			// ip異쒕젰 �씠�뜑�꽬 ?????
 			byte[] send = ObjToByte(ARPRequest, new byte[0], 0);// ARP瑜� 諛붿씠�듃濡� 諛붽씀�뼱 send諛곗뿴�뿉 ���옣
 
-			((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);
+			
+			try {
+				((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			Thread thread = new Thread(timer_3min);
 			thread.start();
 		}

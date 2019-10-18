@@ -1,14 +1,20 @@
 package ARP;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.nio.ByteBuffer;
 import java.text.DateFormat.Field;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import org.jnetpcap.Pcap;
 import org.jnetpcap.PcapIf;
 import org.jnetpcap.packet.PcapPacket;
 import org.jnetpcap.packet.PcapPacketHandler;
+
+import com.sun.xml.internal.bind.v2.model.core.Adapter;
 
 public class NILayer implements BaseLayer {
 	public int nUpperLayerCount = 0;
@@ -38,12 +44,61 @@ public class NILayer implements BaseLayer {
 		}
 	}
 
-	public void SetAdapterNumber(int iNum) {
-		m_iNumAdapter = iNum;
-//		m_iNumAdapter = 2;
+//	public void SetAdapterNumber() throws IOException {
+//	      InetAddress address = InetAddress.getLocalHost();
+//	      String localIp = address.getHostAddress();
+//	      String hostName = address.getHostName();
+//	      NetworkInterface ni = NetworkInterface.getByInetAddress(address);
+//	      byte[] localmac = ni.getHardwareAddress();
+//	      String temp = new String(localmac);
+//	      for(int i = 0; i < m_pAdapterList.size(); i++) {
+//	         if(m_pAdapterList.get(i).getName().equals(temp))
+//	            m_iNumAdapter = i;
+//	      }
+//	      PacketStarDriver();
+//	      Receive();
+//	   }
+	
+	
+//	public void SetAdapterNumber(int iNum) {
+////		m_iNumAdapter = iNum;
+////		PacketStarDriver();
+////		Receive();
+//	}
+	
+	public void SetAdapterNumber() throws IOException {
+		// 로컬 IP취득
+		InetAddress ip = InetAddress.getLocalHost();
+		byte[] mac = null;
+				
+		// 네트워크 인터페이스 취득
+		NetworkInterface netif = NetworkInterface.getByInetAddress(ip);
+		System.out.println(netif);
+
+		// 네트워크 인터페이스가 NULL이 아니면
+		if (netif != null) {
+			// 네트워크 인터페이스 표시명 출력
+			System.out.print(netif.getDisplayName() + " : ");
+					
+			// 맥어드레스 취득
+			mac = netif.getHardwareAddress();
+			
+			for (int i = 0; i < this.m_pAdapterList.size(); i++) {
+				PcapIf temp = this.m_pAdapterList.get(i);
+				byte[] adapterMac = temp.getHardwareAddress();
+				
+				for (int j = 0; j < mac.length; j++) {
+					if (mac[j] == adapterMac[j])
+						this.m_iNumAdapter = i;
+					else {
+						this.m_iNumAdapter = 0;
+					}
+				}
+			}
+		}
 		PacketStarDriver();
-		Receive();
-	}
+	    Receive();
+	   }
 
 	public void PacketStarDriver() {
 		// TODO Auto-generated method stub
