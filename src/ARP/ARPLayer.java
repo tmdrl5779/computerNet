@@ -298,7 +298,7 @@ public class ARPLayer implements BaseLayer {
 	public boolean Receive(byte[] input) {
 
 		// ARP_request
-		if (input[7] == 1) {
+		if (input[7] == (byte)0x01) {
 
 			// destination IP addr = mine
 			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 24, 28))) {
@@ -378,20 +378,20 @@ public class ARPLayer implements BaseLayer {
 
 		}
 		// ARP_reply
-		else if (input[7] == 2) {
+		else if (input[7] == (byte)0x02) {
 
-			// destination IP address is mine
-			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 24, 28))) {
+			// source IP address is mine
+			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 14, 18))) {
 				System.out.println("!! Duplicate IP address sent from " + Arrays.copyOfRange(input, 8, 14));
 			}
 
-			// destination IP address is not mine
+			// source IP address is not mine
 			else {
 
 				Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
 				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 2);// add
 
-				// ip �씠�뜑�꽬 異쒕젰
+				
 				ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
 				Thread thread = new Thread(timer_20min);
 				thread.start();
