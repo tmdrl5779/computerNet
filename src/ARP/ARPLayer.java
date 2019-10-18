@@ -373,8 +373,7 @@ public class ARPLayer implements BaseLayer {
 			else {
 
 				Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
-				((FileChatDlg) this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18),
-						Arrays.copyOfRange(input, 8, 14), "complete", 2);// add
+				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 2);// add
 
 				// ip �씠�뜑�꽬 異쒕젰
 				ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
