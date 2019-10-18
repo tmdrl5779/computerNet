@@ -158,7 +158,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 			}
 		});
 
-		JLabel ip_address = new JLabel("IPÁÖ¼Ò");
+		JLabel ip_address = new JLabel("IPì£¼ì†Œ");
 		ip_address.setBounds(30, 300, 40, 30);
 		chattingPanel.add(ip_address);
 
@@ -342,7 +342,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 				byte[] temp = { 0, 0, 0, 0 };
 				((TCPLayer) m_LayerMgr.GetLayer("TCP")).Send(temp, temp.length);
 			}
-			// ÆÄÀÏ select ÇÏ¿´À»¶§
+			// íŒŒì¼ select í•˜ì˜€ì„ë•Œ
 			if (e.getSource() == selectButton) {
 				JFileChooser fs = new JFileChooser(new File("c:\\"));
 				fs.setDialogTitle("Open a File");
@@ -352,14 +352,14 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 				if (result == JFileChooser.APPROVE_OPTION) {
 					try {
 						File fi = fs.getSelectedFile();
-						pathString = fi.getPath(); // ÆÄÀÏ °æ·Î String
+						pathString = fi.getPath(); // íŒŒì¼ ê²½ë¡œ String
 						fn = fi.getName();
 						upperProgressBar.setStringPainted(true);
 						upperProgressBar.setString(pathString);
 						System.out.println(pathString);
 					} catch (Exception e2) {
 						// TODO: handle exception
-						JOptionPane.showMessageDialog(null, "ÆÄÀÏÀ» ¿©´Âµ¥ ½ÇÆĞÇß½À´Ï´Ù.", "¿À·ù ¸Ş½ÃÁö", JOptionPane.WARNING_MESSAGE);
+						JOptionPane.showMessageDialog(null, "íŒŒì¼ì„ ì—¬ëŠ”ë° ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.", "ì˜¤ë¥˜ ë©”ì‹œì§€", JOptionPane.WARNING_MESSAGE);
 					}
 				}
 			}
@@ -435,10 +435,10 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 		return data;
 	}
 
-	// ¼öÁ¤µÈ
+	// ìˆ˜ì •ëœ
 	String[] areaTable = new String[0];
 
-	public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String status, int index) {// Ãß°¡ 0, Á¦°Å 1, º¯°æ 2
+	public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String status, int index) {// ì¶”ê°€ 0, ì œê±° 1, ë³€ê²½ 2
 		String ip = byteArrayToHexString(ip_addr);
 		String mac = "??????????";
 		if (mac_iddr != null)
@@ -447,7 +447,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 
 		if (index == 0) {
 			this.add_areaTable(result);
-		} else if (index == 0) {
+		} else if (index == 1) {
 			this.del_areaTable(ip);
 		} else {
 			this.change_areaTable(ip, result);
@@ -485,7 +485,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 	//
 
 	/*
-	 * //ÀÌÀü ÄÚµå public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String
+	 * //ì´ì „ ì½”ë“œ public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String
 	 * status) { String ip = byteArrayToHexString(ip_addr); String mac =
 	 * byteArrayToHexString(mac_iddr); String result = ip+" "+mac+" "+status+"\n";
 	 * ChattingArea.append(result); }
