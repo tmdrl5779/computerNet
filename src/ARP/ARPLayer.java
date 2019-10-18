@@ -233,16 +233,16 @@ public class ARPLayer implements BaseLayer {
 		
 			for (int i = 0; i < 4; i++)
 			ARPRequest.ip_dstaddr.addr[i] = input[16 + i];
+			for (int i = 0; i < 4; i++)
+				ARPRequest.ip_srcaddr.addr[i] = input[12 + i];
 			
 		}
-		for (int i = 0; i < 4; i++)
-			ARPRequest.ip_srcaddr.addr[i] = input[12 + i];
-		
-		if (search_table(ARPRequest.ip_dstaddr.addr) != null) {// �뀒�씠釉붿뿉 �븘�씠�뵾媛� ���옣�릺�뼱 �엳�뒗 寃쎌슦
+		// search cache table --> has IP?
+		if (search_table(ARPRequest.ip_dstaddr.addr) != null) {
 			
 			((EthernetLayer) this.GetUnderLayer()).Send(input, input.length);
 		
-		} else {// �뀒�씠釉붿뿉 ���옣�릺�뼱�엳吏� �븡�� 寃쎌슦
+		} else {// cache Table has no IP --> ARP request send
 			
 			Add_ip_addr(ARPRequest.ip_dstaddr.addr);// 紐⑹쟻吏� 二쇱냼瑜� �뀒�씠釉붿뿉 ���옣�썑
 			ARPRequest.enet_srcaddr.addr = this.my_enet_addr.addr;
