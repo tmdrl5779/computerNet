@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringTokenizer;
 
-class Array {//ip와 이더넷 주소를 저장 할 객체
+class Array {//ip�� �씠�뜑�꽬 二쇱냼瑜� ���옣 �븷 媛앹껜
 	_IP_ADDR ip_addr;
 	_ETHERNET_ADDR mac_addr;
 
@@ -18,7 +18,7 @@ class Array {//ip와 이더넷 주소를 저장 할 객체
 	}
 }
 
-class _IP_ADDR {// ip주소 저장 객체
+class _IP_ADDR {// ip二쇱냼 ���옣 媛앹껜
 	byte[] addr = new byte[4];
 
 	public _IP_ADDR() {
@@ -32,7 +32,7 @@ class _IP_ADDR {// ip주소 저장 객체
 	}
 }
 
-class _ETHERNET_ADDR {//이더넷 주소 저장 객체
+class _ETHERNET_ADDR {//�씠�뜑�꽬 二쇱냼 ���옣 媛앹껜
 	byte[] addr = new byte[6];
 
 	public _ETHERNET_ADDR() {
@@ -56,7 +56,7 @@ public class ARPLayer implements BaseLayer {
 	public _IP_ADDR my_ip_addr = new _IP_ADDR();
 	public _ETHERNET_ADDR my_enet_addr = new _ETHERNET_ADDR();
 	public _ETHERNET_ADDR newMacAddr;
-	boolean GratuitousFlag == false;
+	boolean GratuitousFlag = false;
 	
 	
 	private class _ARP_HEADER {
@@ -85,9 +85,9 @@ public class ARPLayer implements BaseLayer {
 		public void run() {
 				try {
 					Thread.sleep(1000*60*3);
-					if(search_table(ARPRequest.ip_dstaddr.addr) == null) {//3분이 지난 시점에서 목적지의 이더넷 주소가 추가 안 되어있을 경우
+					if(search_table(ARPRequest.ip_dstaddr.addr) == null) {//3遺꾩씠 吏��궃 �떆�젏�뿉�꽌 紐⑹쟻吏��쓽 �씠�뜑�꽬 二쇱냼媛� 異붽� �븞 �릺�뼱�엳�쓣 寃쎌슦
 						System.out.println("TimeOut");
-						((FileChatDlg)p_aUpperLayer.get(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "", 1);//제거
+						((FileChatDlg)p_aUpperLayer.get(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "", 1);//�젣嫄�
 						Del_ip_addr(ARPRequest.ip_dstaddr.addr);
 					}
 				} catch (InterruptedException e) {
@@ -103,7 +103,7 @@ public class ARPLayer implements BaseLayer {
 		public void run() {
 				try {
 					Thread.sleep(1000*60*20);
-					((FileChatDlg)p_aUpperLayer.get(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "", 1);//제거
+					((FileChatDlg)p_aUpperLayer.get(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "", 1);//�젣嫄�
 					Del_ip_addr(this.ip_addr);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -123,9 +123,6 @@ public class ARPLayer implements BaseLayer {
 		this.my_enet_addr.addr = enet_addr;
 	}
 	
-	public void del_all() {
-		table = new Array[0];
-	}
 	public ARPLayer(String pName) throws UnknownHostException, SocketException {
 		// TODO Auto-generated constructor stub
 		pLayerName = pName;
@@ -139,7 +136,7 @@ public class ARPLayer implements BaseLayer {
 		this.set_my_enet_addr(ARPRequest.enet_srcaddr.addr);
 	}
 	
-	public boolean addr_isEquals(byte[] addr1, byte[] addr2) {//주소값을 비교
+	public boolean addr_isEquals(byte[] addr1, byte[] addr2) {//二쇱냼媛믪쓣 鍮꾧탳
 		for(int i = 0; i < addr1.length; i++) {
 			if(addr1[i] - addr2[i] != 0)
 				return false;
@@ -148,7 +145,7 @@ public class ARPLayer implements BaseLayer {
 	}
 	
 	
-	public _ETHERNET_ADDR search_table(byte[] ip_addr) {//테이블에 저장된 아이피 주소인지 확인
+	public _ETHERNET_ADDR search_table(byte[] ip_addr) {//�뀒�씠釉붿뿉 ���옣�맂 �븘�씠�뵾 二쇱냼�씤吏� �솗�씤
 		for(int i = 0; i < table.length; i++) 
 			if(addr_isEquals(table[i].ip_addr.addr, ip_addr)) {
 				return table[i].mac_addr;
@@ -157,7 +154,7 @@ public class ARPLayer implements BaseLayer {
 		return null;
 	}
 	
-	public void Proxy_Add_ipAndMac_addr(String ip_input, byte[] mac_input) {// 프록시 테이블에 아이피 주소와 맥주소를 저장
+	public void Proxy_Add_ipAndMac_addr(String ip_input, byte[] mac_input) {// �봽濡앹떆 �뀒�씠釉붿뿉 �븘�씠�뵾 二쇱냼�� 留μ＜�냼瑜� ���옣
 		StringTokenizer st = new StringTokenizer(ip_input, ".");
 		byte[] ip_addr = new byte[4];
 		
@@ -172,35 +169,30 @@ public class ARPLayer implements BaseLayer {
 		proxyTable[proxyTable.length - 1] = new Array(new _IP_ADDR(ip_addr), new _ETHERNET_ADDR(mac_input));
 	}
 	
-//	public void Proxy_Del_ipAndMac_addr(byte[] ip_addr, byte[] enet_addr) {// 프록시 테이블 인덱스 삭제
-//		Array[] temp = new Array[proxyTable.length - 1];
-//		int i,j;
-//		for(i = 0, j = 0; i < proxyTable.length; i++,j++) {
-//			if(addr_isEquals(ip_addr, proxyTable[i].ip_addr.addr) && addr_isEquals(enet_addr, proxyTable[i].mac_addr.addr)) {
-//				j--;
-//				continue;
-//			}
-//			temp[j] = proxyTable[i];
-//		}
-//		proxyTable = temp.clone();
-//		//ip제거 출력
-//	}
-	
-	public void Proxy_Del_ipAndMac_addr() {// 프록시 테이블 인덱스 삭제
-		Array[] temp = new Array[0];
+	public void Proxy_Del_ipAndMac_addr(byte[] ip_addr, byte[] enet_addr) {// �봽濡앹떆 �뀒�씠釉� �씤�뜳�뒪 �궘�젣
+		Array[] temp = new Array[proxyTable.length - 1];
+		int i,j;
+		for(i = 0, j = 0; i < proxyTable.length; i++,j++) {
+			if(addr_isEquals(ip_addr, proxyTable[i].ip_addr.addr) && addr_isEquals(enet_addr, proxyTable[i].mac_addr.addr)) {
+				j--;
+				continue;
+			}
+			temp[j] = proxyTable[i];
+		}
 		proxyTable = temp.clone();
+		//ip�젣嫄� 異쒕젰
 	}
 	
-	public void Add_ip_addr(byte[] ip_addr) {// 테이블에 아이피 주소를 저장
+	public void Add_ip_addr(byte[] ip_addr) {// �뀒�씠釉붿뿉 �븘�씠�뵾 二쇱냼瑜� ���옣
 		Array[] temp = new Array[table.length + 1];
 		for(int i = 0; i < table.length; i ++)
 			temp[i] = table[i];
 		table = temp.clone();
 		table[table.length - 1] = new Array(new _IP_ADDR(ip_addr), null);
-		//??출력
+		//??異쒕젰
 	}
 	
-	public void Del_ip_addr(byte[] ip_addr) {//테이블에 아이피 주소를 저장
+	public void Del_ip_addr(byte[] ip_addr) {//�뀒�씠釉붿뿉 �븘�씠�뵾 二쇱냼瑜� ���옣
 		Array[] temp = new Array[table.length - 1];
 		int i,j;
 		for(i = 0, j = 0; i < table.length; i++,j++) {
@@ -211,10 +203,10 @@ public class ARPLayer implements BaseLayer {
 			temp[j] = table[i];
 		}
 		table = temp.clone();
-		//ip제거 출력
+		//ip�젣嫄� 異쒕젰
 	}
 	
-	public void Add_enet_addr(byte[] ip_addr, byte[] enet_addr) {//테이블에서 아이피 주소에 해당하는 이더넷 주소를 저장
+	public void Add_enet_addr(byte[] ip_addr, byte[] enet_addr) {//�뀒�씠釉붿뿉�꽌 �븘�씠�뵾 二쇱냼�뿉 �빐�떦�븯�뒗 �씠�뜑�꽬 二쇱냼瑜� ���옣
 		for(int i = 0; i < table.length; i ++)
 			if(addr_isEquals(table[i].ip_addr.addr, ip_addr)) {
 				table[i].mac_addr = new _ETHERNET_ADDR(enet_addr);
@@ -223,6 +215,7 @@ public class ARPLayer implements BaseLayer {
 	public void getNewMacAddr(byte[] macAddr) {
 		
 		this.newMacAddr = new _ETHERNET_ADDR(macAddr);
+		if(newMacAddr != my_enet_addr) GratuitousFlag = true;
 		
 	}
 	public boolean Send(byte[] input, int length) {
@@ -230,8 +223,10 @@ public class ARPLayer implements BaseLayer {
 		// updated MAC addr
 		if(GratuitousFlag == true){
 			
-			// set my IP address as dstaddr and update new mac addr
+			// set my IP address as dst and scr addr
 			ARPRequest.ip_dstaddr = my_ip_addr;
+			ARPRequest.ip_srcaddr = my_ip_addr;
+			// update my MAC addr as new MAC addr
 			my_enet_addr = newMacAddr;
 
 		} else {
@@ -243,16 +238,19 @@ public class ARPLayer implements BaseLayer {
 		for (int i = 0; i < 4; i++)
 			ARPRequest.ip_srcaddr.addr[i] = input[12 + i];
 		
-		if (search_table(ARPRequest.ip_dstaddr.addr) != null) {// 테이블에 아이피가 저장되어 있는 경우
+		if (search_table(ARPRequest.ip_dstaddr.addr) != null) {// �뀒�씠釉붿뿉 �븘�씠�뵾媛� ���옣�릺�뼱 �엳�뒗 寃쎌슦
+			
 			((EthernetLayer) this.GetUnderLayer()).Send(input, input.length);
-		} else {// 테이블에 저장되어있지 않은 경우
-			Add_ip_addr(ARPRequest.ip_dstaddr.addr);// 목적지 주소를 테이블에 저장후
+		
+		} else {// �뀒�씠釉붿뿉 ���옣�릺�뼱�엳吏� �븡�� 寃쎌슦
+			
+			Add_ip_addr(ARPRequest.ip_dstaddr.addr);// 紐⑹쟻吏� 二쇱냼瑜� �뀒�씠釉붿뿉 ���옣�썑
 			ARPRequest.enet_srcaddr.addr = this.my_enet_addr.addr;
 			ARPRequest.op[0] = (byte) 0x00;
-			ARPRequest.op[1] = (byte) 0x01;// ARP를 요청으로 저장하고
+			ARPRequest.op[1] = (byte) 0x01;// ARP瑜� �슂泥��쑝濡� ���옣�븯怨�
 			((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "incomplete", 0);//add
-			// ip출력 이더넷 ?????
-			byte[] send = ObjToByte(ARPRequest, new byte[0], 0);// ARP를 바이트로 바꾸어 send배열에 저장
+			// ip異쒕젰 �씠�뜑�꽬 ?????
+			byte[] send = ObjToByte(ARPRequest, new byte[0], 0);// ARP瑜� 諛붿씠�듃濡� 諛붽씀�뼱 send諛곗뿴�뿉 ���옣
 
 			((EthernetLayer) this.GetUnderLayer()).Send(send, send.length);
 			Thread thread = new Thread(timer_3min);
@@ -284,7 +282,7 @@ public class ARPLayer implements BaseLayer {
 
 				((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 0);//add
 
-				// 출력??
+				// 異쒕젰??
 				Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
 				Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
 
@@ -311,7 +309,7 @@ public class ARPLayer implements BaseLayer {
 				for (int i = 0; i < this.proxyTable.length; i++) { // search proxy table
 
 					byte[] proxyEntreeElement = proxyTable[i].ip_addr.addr;
-					if (addr_isEquals(dstIPaddr, proxyEntreeElement)) { // 프록시 엔트리에 요청한 IP가 존재하면
+					if (addr_isEquals(dstIPaddr, proxyEntreeElement)) { // �봽濡앹떆 �뿏�듃由ъ뿉 �슂泥��븳 IP媛� 議댁옱�븯硫�
 
 						byte[] send = makeARPreply(input);
 						((EthernetLayer) this.GetUnderLayer()).Send(send, send.length);
@@ -327,13 +325,13 @@ public class ARPLayer implements BaseLayer {
 
 			}
 
-			// 출발지 ip주소와 mac주소를 테이블에 저장함
+			// 異쒕컻吏� ip二쇱냼�� mac二쇱냼瑜� �뀒�씠釉붿뿉 ���옣�븿
 			Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
 			Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
 			((FileChatDlg) this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18),
 					Arrays.copyOfRange(input, 8, 14), "complete", 0);// add
 
-			// ip 이더넷 출력
+			// ip �씠�뜑�꽬 異쒕젰
 			ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
 			Thread thread = new Thread(timer_20min);
 			thread.start();
@@ -354,7 +352,7 @@ public class ARPLayer implements BaseLayer {
 				((FileChatDlg) this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18),
 						Arrays.copyOfRange(input, 8, 14), "complete", 2);// add
 
-				// ip 이더넷 출력
+				// ip �씠�뜑�꽬 異쒕젰
 				ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
 				Thread thread = new Thread(timer_20min);
 				thread.start();
