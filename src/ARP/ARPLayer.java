@@ -123,6 +123,9 @@ public class ARPLayer implements BaseLayer {
 		this.my_enet_addr.addr = enet_addr;
 	}
 	
+	public void del_all() {
+		table = new Array[0];
+	}
 	public ARPLayer(String pName) throws UnknownHostException, SocketException {
 		// TODO Auto-generated constructor stub
 		pLayerName = pName;
