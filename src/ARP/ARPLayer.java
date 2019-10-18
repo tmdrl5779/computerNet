@@ -56,6 +56,7 @@ public class ARPLayer implements BaseLayer {
 	public _IP_ADDR my_ip_addr = new _IP_ADDR();
 	public _ETHERNET_ADDR my_enet_addr = new _ETHERNET_ADDR();
 	public _ETHERNET_ADDR newMacAddr;
+	boolean GratuitousFlag == false;
 	
 	
 	private class _ARP_HEADER {
@@ -219,11 +220,11 @@ public class ARPLayer implements BaseLayer {
 	public boolean Send(byte[] input, int length) {
 
 		// updated MAC addr
-		if(newMacAddr != my_enet_addr){
+		if(GratuitousFlag == true){
 			
 			// set my IP address as dstaddr and update new mac addr
 			ARPRequest.ip_dstaddr = my_ip_addr;
-			ARPRequest.enet_srcaddr = newMacAddr;
+			my_enet_addr = newMacAddr;
 
 		} else {
 		
