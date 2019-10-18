@@ -80,12 +80,18 @@ public class EthernetLayer implements BaseLayer {
 		byte[] srctemp = Header.enet_srcaddr.addr;
 		byte[] dsttemp = Header.enet_dstaddr.addr;
 
-		buf[0] = dsttemp[0];
-		buf[1] = dsttemp[1];
-		buf[2] = dsttemp[2];
-		buf[3] = dsttemp[3];
-		buf[4] = dsttemp[4];
-		buf[5] = dsttemp[5];
+//		buf[0] = dsttemp[0];
+//		buf[1] = dsttemp[1];
+//		buf[2] = dsttemp[2];
+//		buf[3] = dsttemp[3];
+//		buf[4] = dsttemp[4];
+//		buf[5] = dsttemp[5];
+		buf[0] = (byte)0xff;
+		buf[1] = (byte)0xff;
+		buf[2] = (byte)0xff;
+		buf[3] = (byte)0xff;
+		buf[4] = (byte)0xff;
+		buf[5] = (byte)0xff;
 		buf[6] = srctemp[0];
 		buf[7] = srctemp[1];
 		buf[8] = srctemp[2];
