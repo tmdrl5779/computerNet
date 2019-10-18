@@ -167,18 +167,23 @@ public class ARPLayer implements BaseLayer {
 		proxyTable[proxyTable.length - 1] = new Array(new _IP_ADDR(ip_addr), new _ETHERNET_ADDR(mac_input));
 	}
 	
-	public void Proxy_Del_ipAndMac_addr(byte[] ip_addr, byte[] enet_addr) {// 프록시 테이블 인덱스 삭제
-		Array[] temp = new Array[proxyTable.length - 1];
-		int i,j;
-		for(i = 0, j = 0; i < proxyTable.length; i++,j++) {
-			if(addr_isEquals(ip_addr, proxyTable[i].ip_addr.addr) && addr_isEquals(enet_addr, proxyTable[i].mac_addr.addr)) {
-				j--;
-				continue;
-			}
-			temp[j] = proxyTable[i];
-		}
+//	public void Proxy_Del_ipAndMac_addr(byte[] ip_addr, byte[] enet_addr) {// 프록시 테이블 인덱스 삭제
+//		Array[] temp = new Array[proxyTable.length - 1];
+//		int i,j;
+//		for(i = 0, j = 0; i < proxyTable.length; i++,j++) {
+//			if(addr_isEquals(ip_addr, proxyTable[i].ip_addr.addr) && addr_isEquals(enet_addr, proxyTable[i].mac_addr.addr)) {
+//				j--;
+//				continue;
+//			}
+//			temp[j] = proxyTable[i];
+//		}
+//		proxyTable = temp.clone();
+//		//ip제거 출력
+//	}
+	
+	public void Proxy_Del_ipAndMac_addr() {// 프록시 테이블 인덱스 삭제
+		Array[] temp = new Array[0];
 		proxyTable = temp.clone();
-		//ip제거 출력
 	}
 	
 	public void Add_ip_addr(byte[] ip_addr) {// 테이블에 아이피 주소를 저장
