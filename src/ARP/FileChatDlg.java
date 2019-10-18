@@ -158,7 +158,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 			}
 		});
 
-		JLabel ip_address = new JLabel("IP주소");
+		JLabel ip_address = new JLabel("IP二쇱냼");
 		ip_address.setBounds(30, 300, 40, 30);
 		chattingPanel.add(ip_address);
 
@@ -221,7 +221,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 							@Override
 							public void actionPerformed(ActionEvent e) {
 								// TODO Auto-generated method stub
-								((ARPLayer) m_LayerMgr.GetLayer("ARP")).Proxy_Add_ipAndMac_addr(ip_address.getText().getBytes(),
+								((ARPLayer) m_LayerMgr.GetLayer("ARP")).Proxy_Add_ipAndMac_addr(ip_address.getText(),
 										hexStringToByteArray(mac_address.getText()));
 								String iptemp, mactemp, result = "";
 								for (int i = 0; i < ((ARPLayer) m_LayerMgr.GetLayer("ARP")).proxyTable.length; i++) {
@@ -342,7 +342,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 				byte[] temp = { 0, 0, 0, 0 };
 				((TCPLayer) m_LayerMgr.GetLayer("TCP")).Send(temp, temp.length);
 			}
-			// 파일 select 하였을때
+			// �뙆�씪 select �븯���쓣�븣
 			if (e.getSource() == selectButton) {
 				JFileChooser fs = new JFileChooser(new File("c:\\"));
 				fs.setDialogTitle("Open a File");
@@ -352,14 +352,14 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 				if (result == JFileChooser.APPROVE_OPTION) {
 					try {
 						File fi = fs.getSelectedFile();
-						pathString = fi.getPath(); // 파일 경로 String
+						pathString = fi.getPath(); // �뙆�씪 寃쎈줈 String
 						fn = fi.getName();
 						upperProgressBar.setStringPainted(true);
 						upperProgressBar.setString(pathString);
 						System.out.println(pathString);
 					} catch (Exception e2) {
 						// TODO: handle exception
-						JOptionPane.showMessageDialog(null, "파일을 여는데 실패했습니다.", "오류 메시지", JOptionPane.WARNING_MESSAGE);
+						JOptionPane.showMessageDialog(null, "�뙆�씪�쓣 �뿬�뒗�뜲 �떎�뙣�뻽�뒿�땲�떎.", "�삤瑜� 硫붿떆吏�", JOptionPane.WARNING_MESSAGE);
 					}
 				}
 			}
@@ -435,10 +435,10 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 		return data;
 	}
 
-	// 수정된
+	// �닔�젙�맂
 	String[] areaTable = new String[0];
 
-	public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String status, int index) {// 추가 0, 제거 1, 변경 2
+	public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String status, int index) {// 異붽� 0, �젣嫄� 1, 蹂�寃� 2
 		String ip = byteArrayToHexString(ip_addr);
 		String mac = "??????????";
 		if (mac_iddr != null)
@@ -485,7 +485,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 	//
 
 	/*
-	 * //이전 코드 public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String
+	 * //�씠�쟾 肄붾뱶 public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String
 	 * status) { String ip = byteArrayToHexString(ip_addr); String mac =
 	 * byteArrayToHexString(mac_iddr); String result = ip+" "+mac+" "+status+"\n";
 	 * ChattingArea.append(result); }
