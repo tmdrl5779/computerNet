@@ -155,11 +155,11 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				ChattingArea.setText("");
-				((ARPLayer)m_LayerMgr.GetLayer("ARP")).del_all();
+				//((ARPLayer)m_LayerMgr.GetLayer("ARP")).del_all();
 			}
 		});
 
-		JLabel ip_address = new JLabel("IP二쇱냼");
+		JLabel ip_address = new JLabel("IP雅뚯눘�꺖");
 		ip_address.setBounds(30, 300, 40, 30);
 		chattingPanel.add(ip_address);
 
@@ -343,7 +343,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 				byte[] temp = { 0, 0, 0, 0 };
 				((TCPLayer) m_LayerMgr.GetLayer("TCP")).Send(temp, temp.length);
 			}
-			// �뙆�씪 select �븯���쓣�븣
+			// 占쎈솁占쎌뵬 select 占쎈릭占쏙옙占쎌뱽占쎈르
 			if (e.getSource() == selectButton) {
 				JFileChooser fs = new JFileChooser(new File("c:\\"));
 				fs.setDialogTitle("Open a File");
@@ -353,14 +353,14 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 				if (result == JFileChooser.APPROVE_OPTION) {
 					try {
 						File fi = fs.getSelectedFile();
-						pathString = fi.getPath(); // �뙆�씪 寃쎈줈 String
+						pathString = fi.getPath(); // 占쎈솁占쎌뵬 野껋럥以� String
 						fn = fi.getName();
 						upperProgressBar.setStringPainted(true);
 						upperProgressBar.setString(pathString);
 						System.out.println(pathString);
 					} catch (Exception e2) {
 						// TODO: handle exception
-						JOptionPane.showMessageDialog(null, "�뙆�씪�쓣 �뿬�뒗�뜲 �떎�뙣�뻽�뒿�땲�떎.", "�삤瑜� 硫붿떆吏�", JOptionPane.WARNING_MESSAGE);
+						JOptionPane.showMessageDialog(null, "占쎈솁占쎌뵬占쎌뱽 占쎈연占쎈뮉占쎈쑓 占쎈뼄占쎈솭占쎈뻥占쎈뮸占쎈빍占쎈뼄.", "占쎌궎�몴占� 筌롫뗄�뻻筌욑옙", JOptionPane.WARNING_MESSAGE);
 					}
 				}
 			}
@@ -436,10 +436,10 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 		return data;
 	}
 
-	// �닔�젙�맂
+	// 占쎈땾占쎌젟占쎈쭆
 	String[] areaTable = new String[0];
 
-	public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String status, int index) {// 異붽� 0, �젣嫄� 1, 蹂�寃� 2
+	public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String status, int index) {// �빊遺쏙옙 0, 占쎌젫椰꾬옙 1, 癰귨옙野껓옙 2
 		String ip = byteArrayToHexString_ip_mac(ip_addr);
 		String mac = "??????????";
 		if (mac_iddr != null)
@@ -501,7 +501,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 	//
 
 	/*
-	 * //�씠�쟾 肄붾뱶 public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String
+	 * //占쎌뵠占쎌읈 �굜遺얜굡 public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String
 	 * status) { String ip = byteArrayToHexString(ip_addr); String mac =
 	 * byteArrayToHexString(mac_iddr); String result = ip+" "+mac+" "+status+"\n";
 	 * ChattingArea.append(result); }

@@ -128,6 +128,7 @@ public class LayerManager {
 			pNode = pNode.next;
 
 		}
+		System.out.println("");
 	}
 
 }

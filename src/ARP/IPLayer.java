@@ -79,7 +79,7 @@ public class IPLayer implements BaseLayer{
 	public boolean Send(byte[] input, int length) {
 		
 		byte[] send = ObjToByte(m_sHeader, input, length);
-		((ARPLayer)this.GetUnderLayer()).Send(send, send.length);
+		(this.GetUnderLayer()).Send(send, send.length);
 		return true;
 	}
 	
@@ -115,7 +115,7 @@ public class IPLayer implements BaseLayer{
 		StringTokenizer st = new StringTokenizer(address, ".");
 		
 		for(int i = 0; i < 4; i++)
-			m_sHeader.ip_srcaddr.addr[i] = (byte) Integer.parseInt(st.nextToken());
+			m_sHeader.ip_dstaddr.addr[i] = (byte) Integer.parseInt(st.nextToken());
 	}
 	
 	public void SetIpSrcAddress(String address) {
@@ -144,7 +144,6 @@ public class IPLayer implements BaseLayer{
 	
 	
 	
-	
 	@Override
 	public String GetLayerName() {
 		// TODO Auto-generated method stub
@@ -167,13 +166,12 @@ public class IPLayer implements BaseLayer{
 		return p_aUpperLayer.get(nindex);
 	}
 
-	
 	@Override
 	public void SetUnderLayer(BaseLayer pUnderLayer) {
 		// TODO Auto-generated method stub
-		if (p_UnderLayer == null)
+		if (pUnderLayer == null)
 			return;
-		this.p_UnderLayer = pUnderLayer;
+		p_UnderLayer = pUnderLayer;
 	}
 
 	@Override
