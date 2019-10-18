@@ -55,6 +55,8 @@ public class ARPLayer implements BaseLayer {
 	public Array[] proxyTable = new Array[0]; // proxyTable
 	public _IP_ADDR my_ip_addr = new _IP_ADDR();
 	public _ETHERNET_ADDR my_enet_addr = new _ETHERNET_ADDR();
+	public _ETHERNET_ADDR newMacAddr;
+	boolean GratuitousFlag == false;
 	
 	
 	private class _ARP_HEADER {
@@ -215,14 +217,29 @@ public class ARPLayer implements BaseLayer {
 				table[i].mac_addr = new _ETHERNET_ADDR(enet_addr);
 			}
 	}
-	
+	public void getNewMacAddr(byte[] macAddr) {
+		
+		this.newMacAddr = new _ETHERNET_ADDR(macAddr);
+		
+	}
 	public boolean Send(byte[] input, int length) {
 
+		// updated MAC addr
+		if(GratuitousFlag == true){
+			
+			// set my IP address as dstaddr and update new mac addr
+			ARPRequest.ip_dstaddr = my_ip_addr;
+			my_enet_addr = newMacAddr;
+
+		} else {
+		
+			for (int i = 0; i < 4; i++)
+			ARPRequest.ip_dstaddr.addr[i] = input[16 + i];
+			
+		}
 		for (int i = 0; i < 4; i++)
 			ARPRequest.ip_srcaddr.addr[i] = input[12 + i];
-		for (int i = 0; i < 4; i++)
-			ARPRequest.ip_dstaddr.addr[i] = input[16 + i];
-
+		
 		if (search_table(ARPRequest.ip_dstaddr.addr) != null) {// 테이블에 아이피가 저장되어 있는 경우
 			((EthernetLayer) this.GetUnderLayer()).Send(input, input.length);
 		} else {// 테이블에 저장되어있지 않은 경우
@@ -239,23 +256,6 @@ public class ARPLayer implements BaseLayer {
 			thread.start();
 		}
 		return true;
-	}
-	
-	
-	public void GratuitousARP_MAC(_ETHERNET_ADDR newMacAddr) {
-
-		// updated MAC addr
-		if (newMacAddr != my_enet_addr) {
-
-			// set my IP address as dstaddr
-			ARPRequest.ip_dstaddr = my_ip_addr;
-			ARPRequest.enet_srcaddr = newMacAddr;
-
-			// send ARP request
-			((EthernetLayer)this.GetUnderLayer()).Send(ARPRequest, ARPRequest.length);
-
-		}
-
 	}
 
 	public byte[] makeARPreply(byte[] input) {
