@@ -379,25 +379,25 @@ public class ARPLayer implements BaseLayer {
 		}
 		// ARP_reply
 		else if (input[7] == (byte)0x02) {
+			// source IP address is not mine
+						if (!addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 14, 18))){
 
+							Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
+							((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 2);// add
+
+							
+							ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
+							Thread thread = new Thread(timer_20min);
+							thread.start();
+
+						}
+			
 			// source IP address is mine
-			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 14, 18))) {
+			else {
 				System.out.println("!! Duplicate IP address sent from " + Arrays.copyOfRange(input, 8, 14));
 			}
 
-			// source IP address is not mine
-			else {
-
-				Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
-				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 2);// add
-
-				
-				ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
-				Thread thread = new Thread(timer_20min);
-				thread.start();
-
-			}
-		}
+					}
 		return false;
 	}
 
