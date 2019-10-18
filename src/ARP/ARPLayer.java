@@ -205,101 +205,150 @@ public class ARPLayer implements BaseLayer {
 	}
 	
 	public boolean Send(byte[] input, int length) {
-		
-		for(int i = 0; i < 4; i++)
+
+		for (int i = 0; i < 4; i++)
 			ARPRequest.ip_srcaddr.addr[i] = input[12 + i];
-		for(int i = 0; i < 4; i++)
+		for (int i = 0; i < 4; i++)
 			ARPRequest.ip_dstaddr.addr[i] = input[16 + i];
-		
-		if(search_table(ARPRequest.ip_dstaddr.addr) != null) {//테이블에 아이피가 저장되어 있는 경우
-			((EthernetLayer)this.GetUnderLayer()).Send(input, input.length);
-		}
-		else {//테이블에 저장되어있지 않은 경우
-			Add_ip_addr(ARPRequest.ip_dstaddr.addr);//목적지 주소를 테이블에 저장후
+
+		if (search_table(ARPRequest.ip_dstaddr.addr) != null) {// 테이블에 아이피가 저장되어 있는 경우
+			((EthernetLayer) this.GetUnderLayer()).Send(input, input.length);
+		} else {// 테이블에 저장되어있지 않은 경우
+			Add_ip_addr(ARPRequest.ip_dstaddr.addr);// 목적지 주소를 테이블에 저장후
 			ARPRequest.enet_srcaddr.addr = this.my_enet_addr.addr;
-			ARPRequest.op[0] = (byte)0x00;
-			ARPRequest.op[1] = (byte)0x01;//ARP를 요청으로 저장하고
+			ARPRequest.op[0] = (byte) 0x00;
+			ARPRequest.op[1] = (byte) 0x01;// ARP를 요청으로 저장하고
 			((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "incomplete", 0);//add
-			//ip출력 이더넷 ?????
-			byte[] send = ObjToByte(ARPRequest, new byte[0], 0);//ARP를 바이트로 바꾸어 send배열에 저장
-			
-			((EthernetLayer)this.GetUnderLayer()).Send(send, send.length);
+			// ip출력 이더넷 ?????
+			byte[] send = ObjToByte(ARPRequest, new byte[0], 0);// ARP를 바이트로 바꾸어 send배열에 저장
+
+			((EthernetLayer) this.GetUnderLayer()).Send(send, send.length);
 			Thread thread = new Thread(timer_3min);
 			thread.start();
 		}
 		return true;
 	}
 	
+	
+	public void GratuitousARP_MAC(_ETHERNET_ADDR newMacAddr) {
+
+		// updated MAC addr
+		if (newMacAddr != my_enet_addr) {
+
+			// set my IP address as dstaddr
+			ARPRequest.ip_dstaddr = my_ip_addr;
+			ARPRequest.enet_srcaddr = newMacAddr;
+
+			// send ARP request
+			((EthernetLayer)this.GetUnderLayer()).Send(ARPRequest, ARPRequest.length);
+
+		}
+
+	}
+
+	public byte[] makeARPreply(byte[] input) {
+
+		_ARP_HEADER ARPReply = new _ARP_HEADER();
+		ARPReply.op[0] = (byte) 0x00;
+		ARPReply.op[1] = (byte) 0x02;
+		ARPReply.ip_dstaddr = new _IP_ADDR(Arrays.copyOfRange(input, 14, 18));
+		ARPReply.ip_srcaddr = new _IP_ADDR(Arrays.copyOfRange(input, 24, 28));
+		ARPReply.enet_dstaddr = new _ETHERNET_ADDR(Arrays.copyOfRange(input, 8, 14));
+		ARPReply.enet_srcaddr = new _ETHERNET_ADDR(this.my_enet_addr.addr);
+		return ObjToByte(ARPReply, new byte[0], 0);
+
+	}
+
 	public boolean Receive(byte[] input) {
-		if(input[7] == 1) {//자신이 목적지는 아니지만 ARP_req에 대해서 출발지 ip주소와 mac주소를 테이블에 저장함
-			
-			Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
-			Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
-			((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 0);//add
-			//ip 이더넷 출력
-			ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
-			Thread thread = new Thread(timer_20min);
-			thread.start();
-		}
-		else if(addr_isEquals(this.my_ip_addr.addr ,Arrays.copyOfRange(input, 24, 28)) && input[7] == 1) {//자신이 목적지 이며 ARP_req인 경우
-			((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 0);//add
-			//ip 이더넷 출력
-			Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
-			Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
-			_ARP_HEADER ARPReply = new _ARP_HEADER();
-			ARPReply.op[0] = (byte)0x00;
-			ARPReply.op[1] = (byte)0x02;
-			ARPReply.ip_dstaddr = new _IP_ADDR(Arrays.copyOfRange(input, 14, 18));
-			ARPReply.ip_srcaddr = new _IP_ADDR(Arrays.copyOfRange(input, 24, 28));
-			ARPReply.enet_dstaddr = new _ETHERNET_ADDR(Arrays.copyOfRange(input, 8, 14));
-			ARPReply.enet_srcaddr = new _ETHERNET_ADDR(this.my_enet_addr.addr);
-			byte[] send = ObjToByte(ARPReply, new byte[0], 0);
-			((EthernetLayer)this.GetUnderLayer()).Send(send, send.length);
-			
-			ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
-			Thread thread = new Thread(timer_20min);
-			thread.start();
 
-			return true;
-		}
-		else if(!addr_isEquals(this.my_ip_addr.addr ,Arrays.copyOfRange(input, 24, 28)) && input[7] == 1) { // 자신이 목적지가 아니며 ARP_req인 경우이므로 프록시 엔트리 확인
-			byte[] temp = Arrays.copyOfRange(input, 24, 28);
-			
-			// 프록시 엔트리 탐색
-			for (int i = 0; i < this.proxyTable.length; i++) {
-				byte[] proxyEntreeElement = proxyTable[i].ip_addr.addr;
-				
-				if (addr_isEquals(temp, proxyEntreeElement)) { //프록시 엔트리에 요청한 IP가 존재하면
-					_ARP_HEADER ARPReply = new _ARP_HEADER();
-					ARPReply.op[0] = (byte)0x00;
-					ARPReply.op[1] = (byte)0x02;
-					
-					ARPReply.ip_dstaddr = new _IP_ADDR(Arrays.copyOfRange(input, 14, 18));
-					ARPReply.ip_srcaddr = new _IP_ADDR(Arrays.copyOfRange(input, 24, 28));
-					ARPReply.enet_dstaddr = new _ETHERNET_ADDR(Arrays.copyOfRange(input, 8, 14));
-					ARPReply.enet_srcaddr = new _ETHERNET_ADDR(this.my_enet_addr.addr);
-					byte[] send = ObjToByte(ARPReply, new byte[0], 0);
-					((EthernetLayer)this.GetUnderLayer()).Send(send, send.length);
-					
-//					ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
-					Thread thread = new Thread(timer_20min);
-					thread.start();
+		// ARP_request
+		if (input[7] == 1) {
 
-					return true;
+			// destination IP addr = mine
+			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 24, 28))) {
+
+				((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 0);//add
+
+				// 출력??
+				Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
+				Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
+
+				byte[] send = makeARPreply(input);
+				((EthernetLayer) this.GetUnderLayer()).Send(send, send.length);
+
+				ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
+				Thread thread = new Thread(timer_20min);
+				thread.start();
+
+				return true;
+			}
+			// destination IP addr != mine
+			else if (!addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 24, 28))) {
+
+				// MAC addr changed
+				if (!addr_isEquals(this.my_enet_addr.addr, Arrays.copyOfRange(input, 8, 14))) {
+
+					// update table
+
 				}
+
+				byte[] dstIPaddr = Arrays.copyOfRange(input, 24, 28);
+				for (int i = 0; i < this.proxyTable.length; i++) { // search proxy table
+
+					byte[] proxyEntreeElement = proxyTable[i].ip_addr.addr;
+					if (addr_isEquals(dstIPaddr, proxyEntreeElement)) { // 프록시 엔트리에 요청한 IP가 존재하면
+
+						byte[] send = makeARPreply(input);
+						((EthernetLayer) this.GetUnderLayer()).Send(send, send.length);
+
+				                ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
+						Thread thread = new Thread(timer_20min);
+						thread.start();
+
+						return true;
+
+					}
+				}
+
 			}
 
-		}
-		else if(addr_isEquals(this.my_ip_addr.addr ,Arrays.copyOfRange(input, 24, 28)) && input[7] == 2){//ARP_reply가 도착한 경우
+			// 출발지 ip주소와 mac주소를 테이블에 저장함
+			Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
 			Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
-			((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 2);//add
-			//ip 이더넷 출력
+			((FileChatDlg) this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18),
+					Arrays.copyOfRange(input, 8, 14), "complete", 0);// add
+
+			// ip 이더넷 출력
 			ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
 			Thread thread = new Thread(timer_20min);
 			thread.start();
+
+		}
+		// ARP_reply
+		else if (input[7] == 2) {
+
+			// destination IP address is mine
+			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 24, 28))) {
+				System.out.println("!! Duplicate IP address sent from " + Arrays.copyOfRange(input, 8, 14));
+			}
+
+			// destination IP address is not mine
+			else {
+
+				Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
+				((FileChatDlg) this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18),
+						Arrays.copyOfRange(input, 8, 14), "complete", 2);// add
+
+				// ip 이더넷 출력
+				ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
+				Thread thread = new Thread(timer_20min);
+				thread.start();
+
+			}
 		}
 		return false;
 	}
+
 	
 	public byte[] ObjToByte(_ARP_HEADER ARPHeader, byte[] input, int length) {
 		byte[] buf = new byte[length + 28];
