@@ -439,10 +439,10 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 	String[] areaTable = new String[0];
 
 	public void setChattingArea(byte[] ip_addr, byte[] mac_iddr, String status, int index) {// 異붽� 0, �젣嫄� 1, 蹂�寃� 2
-		String ip = byteArrayToHexString(ip_addr);
+		String ip = byteArrayToHexString_ip_mac(ip_addr);
 		String mac = "??????????";
 		if (mac_iddr != null)
-			mac = byteArrayToHexString(mac_iddr);
+			mac = byteArrayToHexString_ip_mac(mac_iddr);
 		String result = ip + " " + mac + " " + status + "\n";
 
 		if (index == 0) {
@@ -481,6 +481,21 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 				j++;
 			}
 		areaTable = temp.clone();
+	}
+	public static String byteArrayToHexString_ip_mac(byte[] bytes) {
+		StringBuilder sb = new StringBuilder();
+		String s = ".";
+		if(bytes.length == 6) {
+			s = ":";
+			for(int i = 0; i < bytes.length - 1; i++)
+				sb.append(String.format("%02X", bytes[i] & 0xff) + s);
+			sb.append(String.format("%02X", bytes[bytes.length - 1] & 0xff));
+			return sb.toString();
+		}
+		for(int i = 0; i < bytes.length - 1; i++)
+			sb.append((int)(bytes[i]&0xFF) + s);
+		sb.append((int)(bytes[bytes.length-1]&0xFF));
+		return sb.toString();
 	}
 	//
 
