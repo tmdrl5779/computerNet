@@ -1,42 +1,47 @@
 package ARP;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.StringTokenizer;
 
-class Addrs {// ip¿Í ÀÌ´õ³İ ÁÖ¼Ò¸¦ ÀúÀå ÇÒ °´Ã¼
+class Array {//ipì™€ ì´ë”ë„· ì£¼ì†Œë¥¼ ì €ì¥ í•  ê°ì²´
 	_IP_ADDR ip_addr;
 	_ETHERNET_ADDR mac_addr;
 
-	public Addrs(_IP_ADDR ip_addr, _ETHERNET_ADDR mac_addr) {
+	public Array(_IP_ADDR ip_addr, _ETHERNET_ADDR mac_addr) {
 		this.ip_addr = ip_addr;
 		this.mac_addr = mac_addr;
 	}
 }
 
-class _IP_ADDR {// ipÁÖ¼Ò ÀúÀå °´Ã¼
+class _IP_ADDR {// ipì£¼ì†Œ ì €ì¥ ê°ì²´
 	byte[] addr = new byte[4];
 
 	public _IP_ADDR() {
-		for (int i = 0; i < 4; i++)
+		for(int i = 0; i < 4; i++)
 			this.addr[i] = (byte) 0x00;
 	}
-
+	
 	public _IP_ADDR(byte[] ip_addr) {
-		for (int i = 0; i < 4; i++)
+		for(int i = 0; i < 4; i++)
 			this.addr[i] = ip_addr[i];
 	}
 }
 
-class _ETHERNET_ADDR {// ÀÌ´õ³İ ÁÖ¼Ò ÀúÀå °´Ã¼
+class _ETHERNET_ADDR {//ì´ë”ë„· ì£¼ì†Œ ì €ì¥ ê°ì²´
 	byte[] addr = new byte[6];
 
 	public _ETHERNET_ADDR() {
-		for (int i = 0; i < 6; i++)
+		for(int i = 0; i < 6; i++)
 			this.addr[i] = (byte) 0x00;
 	}
-
+	
 	public _ETHERNET_ADDR(byte[] enet_addr) {
-		for (int i = 0; i < 6; i++)
+		for(int i = 0; i < 6; i++)
 			this.addr[i] = enet_addr[i];
 	}
 }
@@ -46,301 +51,259 @@ public class ARPLayer implements BaseLayer {
 	public int nUpperLayerCount = 0;
 	public BaseLayer p_UnderLayer = null;
 	public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
-	public Addrs[] table = new Addrs[0];
-	public Addrs[] proxyTable = new Addrs[0]; // proxyTable
+	public Array[] table = new Array[0];
+	public Array[] proxyTable = new Array[0]; // proxyTable
 	public _IP_ADDR my_ip_addr = new _IP_ADDR();
 	public _ETHERNET_ADDR my_enet_addr = new _ETHERNET_ADDR();
-	private Boolean gratuitousFlag = false;
-
+	
+	
 	private class _ARP_HEADER {
 		_IP_ADDR ip_dstaddr;
 		_IP_ADDR ip_srcaddr;
-
+		
 		_ETHERNET_ADDR enet_dstaddr;
 		_ETHERNET_ADDR enet_srcaddr;
-
-		byte[] hard_type = { (byte) 0x00, (byte) 0x01 };
-		byte[] prot_type = { (byte) 0x08, (byte) 0x00 };
-		byte[] hard_size = { (byte) 0x06 };
-		byte[] prot_size = { (byte) 0x04 };
+		
+		byte[] hard_type = {(byte)0x00, (byte)0x01};
+		byte[] prot_type = {(byte)0x08, (byte)0x00};
+		byte[] hard_size = {(byte)0x06};
+		byte[] prot_size = {(byte)0x04};
 		byte[] op;
-
+		
 		public _ARP_HEADER() {
 			this.ip_dstaddr = new _IP_ADDR();
 			this.ip_srcaddr = new _IP_ADDR();
-			this.enet_dstaddr = new _ETHERNET_ADDR();
 			this.enet_srcaddr = new _ETHERNET_ADDR();
+			this.enet_dstaddr = new _ETHERNET_ADDR();
 			this.op = new byte[2];
 		}
-
 	}
-
+	
 	Runnable timer_3min = new Runnable() {
 		public void run() {
-			try {
-				Thread.sleep(1000 * 60 * 3);
-				if (search_table(ARPRequest.ip_dstaddr.addr) == null) {// 3ºĞÀÌ Áö³­ ½ÃÁ¡¿¡¼­ ¸ñÀûÁöÀÇ ÀÌ´õ³İ ÁÖ¼Ò°¡ Ãß°¡ ¾È µÇ¾îÀÖÀ» °æ¿ì
-					System.out.println("TimeOut");
-//                  ((FileChatDlg)p_aUpperLayer.get(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "", 1);//Á¦°Å
-					Del_ip_addr(ARPRequest.ip_dstaddr.addr);
+				try {
+					Thread.sleep(1000*60*3);
+					if(search_table(ARPRequest.ip_dstaddr.addr) == null) {//3ë¶„ì´ ì§€ë‚œ ì‹œì ì—ì„œ ëª©ì ì§€ì˜ ì´ë”ë„· ì£¼ì†Œê°€ ì¶”ê°€ ì•ˆ ë˜ì–´ìˆì„ ê²½ìš°
+						System.out.println("TimeOut");
+						((FileChatDlg)p_aUpperLayer.get(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "", 1);//ì œê±°
+						Del_ip_addr(ARPRequest.ip_dstaddr.addr);
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
 		}
 	};
-
+	
 	byte[] ip_addr_temp;
-
+	
 	Runnable timer_20min = new Runnable() {
 		byte[] ip_addr = ip_addr_temp;
-
 		public void run() {
-			try {
-				Thread.sleep(1000 * 60 * 20);
-//               ((FileChatDlg)p_aUpperLayer.get(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "", 1);//Á¦°Å
-				Del_ip_addr(this.ip_addr);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+				try {
+					Thread.sleep(1000*60*20);
+					((FileChatDlg)p_aUpperLayer.get(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "", 1);//ì œê±°
+					Del_ip_addr(this.ip_addr);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 
 		}
 	};
-
+	
 	_ARP_HEADER ARPRequest = new _ARP_HEADER();
-
+	
+	
 	public void set_my_ip_addr(byte[] ip_addr) {
 		this.my_ip_addr.addr = ip_addr;
 	}
-
+	
 	public void set_my_enet_addr(byte[] enet_addr) {
 		this.my_enet_addr.addr = enet_addr;
 	}
-
-	public ARPLayer(String pName) {
+	
+	public ARPLayer(String pName) throws UnknownHostException, SocketException {
 		// TODO Auto-generated constructor stub
 		pLayerName = pName;
-
+		StringTokenizer st = new StringTokenizer(InetAddress.getLocalHost().getHostAddress(), ".");
+		for(int i = 0; i < 4; i++)
+			ARPRequest.ip_srcaddr.addr[i] = (byte) Integer.parseInt(st.nextToken());
+		this.set_my_ip_addr(ARPRequest.ip_srcaddr.addr);
+		InetAddress ip = InetAddress.getLocalHost();
+		NetworkInterface netif = NetworkInterface.getByInetAddress(ip);
+		ARPRequest.enet_srcaddr.addr = netif.getHardwareAddress();
+		this.set_my_enet_addr(ARPRequest.enet_srcaddr.addr);
 	}
-
-	public boolean addr_isEquals(byte[] addr1, byte[] addr2) {// ÁÖ¼Ò°ªÀ» ºñ±³
-		for (int i = 0; i < addr1.length; i++) {
-			if (addr1[i] - addr2[i] != 0)
+	
+	public boolean addr_isEquals(byte[] addr1, byte[] addr2) {//ì£¼ì†Œê°’ì„ ë¹„êµ
+		for(int i = 0; i < addr1.length; i++) {
+			if(addr1[i] - addr2[i] != 0)
 				return false;
 		}
 		return true;
 	}
-
-	public _ETHERNET_ADDR search_table(byte[] ip_addr) {// Å×ÀÌºí¿¡ ÀúÀåµÈ ¾ÆÀÌÇÇ ÁÖ¼ÒÀÎÁö È®ÀÎ
-		for (int i = 0; i < table.length; i++)
-			if (addr_isEquals(table[i].ip_addr.addr, ip_addr)) {
+	
+	
+	public _ETHERNET_ADDR search_table(byte[] ip_addr) {//í…Œì´ë¸”ì— ì €ì¥ëœ ì•„ì´í”¼ ì£¼ì†Œì¸ì§€ í™•ì¸
+		for(int i = 0; i < table.length; i++) 
+			if(addr_isEquals(table[i].ip_addr.addr, ip_addr)) {
 				return table[i].mac_addr;
 			}
-
+		
 		return null;
 	}
-
-	public void Proxy_Add_ipAndMac_addr(byte[] ip_addr, byte[] enet_addr) {// ÇÁ·Ï½Ã Å×ÀÌºí¿¡ ¾ÆÀÌÇÇ ÁÖ¼Ò¿Í ¸ÆÁÖ¼Ò¸¦ ÀúÀå
-		Addrs[] temp = new Addrs[proxyTable.length + 1];
-		for (int i = 0; i < proxyTable.length; i++)
+	
+	public void Proxy_Add_ipAndMac_addr(byte[] ip_addr, byte[] enet_addr) {// í”„ë¡ì‹œ í…Œì´ë¸”ì— ì•„ì´í”¼ ì£¼ì†Œì™€ ë§¥ì£¼ì†Œë¥¼ ì €ì¥
+		Array[] temp = new Array[proxyTable.length + 1];
+		for(int i = 0; i < proxyTable.length; i ++)
 			temp[i] = proxyTable[i];
 		proxyTable = temp.clone();
-		proxyTable[proxyTable.length - 1] = new Addrs(new _IP_ADDR(ip_addr), new _ETHERNET_ADDR(enet_addr));
+		proxyTable[proxyTable.length - 1] = new Array(new _IP_ADDR(ip_addr), new _ETHERNET_ADDR(enet_addr));
 	}
-
-	public void Proxy_Del_ipAndMac_addr(byte[] ip_addr, byte[] enet_addr) {// ÇÁ·Ï½Ã Å×ÀÌºí ÀÎµ¦½º »èÁ¦
-		Addrs[] temp = new Addrs[proxyTable.length - 1];
-		int i, j;
-		for (i = 0, j = 0; i < proxyTable.length; i++, j++) {
-			if (addr_isEquals(ip_addr, proxyTable[i].ip_addr.addr)
-					&& addr_isEquals(enet_addr, proxyTable[i].mac_addr.addr)) {
+	
+	public void Proxy_Del_ipAndMac_addr(byte[] ip_addr, byte[] enet_addr) {// í”„ë¡ì‹œ í…Œì´ë¸” ì¸ë±ìŠ¤ ì‚­ì œ
+		Array[] temp = new Array[proxyTable.length - 1];
+		int i,j;
+		for(i = 0, j = 0; i < proxyTable.length; i++,j++) {
+			if(addr_isEquals(ip_addr, proxyTable[i].ip_addr.addr) && addr_isEquals(enet_addr, proxyTable[i].mac_addr.addr)) {
 				j--;
 				continue;
 			}
 			temp[j] = proxyTable[i];
 		}
 		proxyTable = temp.clone();
-		// ipÁ¦°Å Ãâ·Â
+		//ipì œê±° ì¶œë ¥
 	}
-
-	public void Add_ip_addr(byte[] ip_addr) {// Å×ÀÌºí¿¡ ¾ÆÀÌÇÇ ÁÖ¼Ò¸¦ ÀúÀå
-		Addrs[] temp = new Addrs[table.length + 1];
-		for (int i = 0; i < table.length; i++)
+	
+	public void Add_ip_addr(byte[] ip_addr) {// í…Œì´ë¸”ì— ì•„ì´í”¼ ì£¼ì†Œë¥¼ ì €ì¥
+		Array[] temp = new Array[table.length + 1];
+		for(int i = 0; i < table.length; i ++)
 			temp[i] = table[i];
 		table = temp.clone();
-		table[table.length - 1] = new Addrs(new _IP_ADDR(ip_addr), null);
-		// ??Ãâ·Â
+		table[table.length - 1] = new Array(new _IP_ADDR(ip_addr), null);
+		//??ì¶œë ¥
 	}
-
-	public void Del_ip_addr(byte[] ip_addr) {// Å×ÀÌºí¿¡ ¾ÆÀÌÇÇ ÁÖ¼Ò¸¦ ÀúÀå
-		Addrs[] temp = new Addrs[table.length - 1];
-		int i, j;
-		for (i = 0, j = 0; i < table.length; i++, j++) {
-			if (addr_isEquals(ip_addr, table[i].ip_addr.addr)) {
+	
+	public void Del_ip_addr(byte[] ip_addr) {//í…Œì´ë¸”ì— ì•„ì´í”¼ ì£¼ì†Œë¥¼ ì €ì¥
+		Array[] temp = new Array[table.length - 1];
+		int i,j;
+		for(i = 0, j = 0; i < table.length; i++,j++) {
+			if(addr_isEquals(ip_addr, table[i].ip_addr.addr)) {
 				j--;
 				continue;
 			}
 			temp[j] = table[i];
 		}
 		table = temp.clone();
-		// ipÁ¦°Å Ãâ·Â
+		//ipì œê±° ì¶œë ¥
 	}
-
-	public void Add_enet_addr(byte[] ip_addr, byte[] enet_addr) {// Å×ÀÌºí¿¡¼­ ¾ÆÀÌÇÇ ÁÖ¼Ò¿¡ ÇØ´çÇÏ´Â ÀÌ´õ³İ ÁÖ¼Ò¸¦ ÀúÀå
-		for (int i = 0; i < table.length; i++)
-			if (addr_isEquals(table[i].ip_addr.addr, ip_addr)) {
+	
+	public void Add_enet_addr(byte[] ip_addr, byte[] enet_addr) {//í…Œì´ë¸”ì—ì„œ ì•„ì´í”¼ ì£¼ì†Œì— í•´ë‹¹í•˜ëŠ” ì´ë”ë„· ì£¼ì†Œë¥¼ ì €ì¥
+		for(int i = 0; i < table.length; i ++)
+			if(addr_isEquals(table[i].ip_addr.addr, ip_addr)) {
 				table[i].mac_addr = new _ETHERNET_ADDR(enet_addr);
 			}
 	}
-
+	
 	public boolean Send(byte[] input, int length) {
-
-		for (int i = 0; i < 4; i++)
+		
+		for(int i = 0; i < 4; i++)
 			ARPRequest.ip_srcaddr.addr[i] = input[12 + i];
-		for (int i = 0; i < 4; i++)
+		for(int i = 0; i < 4; i++)
 			ARPRequest.ip_dstaddr.addr[i] = input[16 + i];
-
-		if (search_table(ARPRequest.ip_dstaddr.addr) != null) {// Å×ÀÌºí¿¡ ¾ÆÀÌÇÇ°¡ ÀúÀåµÇ¾î ÀÖ´Â °æ¿ì
-			((EthernetLayer) this.GetUnderLayer()).Send(input, input.length);
-		} else {// Å×ÀÌºí¿¡ ÀúÀåµÇ¾îÀÖÁö ¾ÊÀº °æ¿ì
-			Add_ip_addr(ARPRequest.ip_dstaddr.addr);// ¸ñÀûÁö ÁÖ¼Ò¸¦ Å×ÀÌºí¿¡ ÀúÀåÈÄ
+		
+		if(search_table(ARPRequest.ip_dstaddr.addr) != null) {//í…Œì´ë¸”ì— ì•„ì´í”¼ê°€ ì €ì¥ë˜ì–´ ìˆëŠ” ê²½ìš°
+			((EthernetLayer)this.GetUnderLayer()).Send(input, input.length);
+		}
+		else {//í…Œì´ë¸”ì— ì €ì¥ë˜ì–´ìˆì§€ ì•Šì€ ê²½ìš°
+			Add_ip_addr(ARPRequest.ip_dstaddr.addr);//ëª©ì ì§€ ì£¼ì†Œë¥¼ í…Œì´ë¸”ì— ì €ì¥í›„
 			ARPRequest.enet_srcaddr.addr = this.my_enet_addr.addr;
-			ARPRequest.op[0] = (byte) 0x00;
-			ARPRequest.op[1] = (byte) 0x01;// ARP¸¦ ¿äÃ»À¸·Î ÀúÀåÇÏ°í
-//         ((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "incomplete", 0);//add
-			// ipÃâ·Â ÀÌ´õ³İ ?????
-			byte[] send = ObjToByte(ARPRequest, new byte[0], 0);// ARP¸¦ ¹ÙÀÌÆ®·Î ¹Ù²Ù¾î send¹è¿­¿¡ ÀúÀå
-
-			((EthernetLayer) this.GetUnderLayer()).Send(send, send.length);
+			ARPRequest.op[0] = (byte)0x00;
+			ARPRequest.op[1] = (byte)0x01;//ARPë¥¼ ìš”ì²­ìœ¼ë¡œ ì €ì¥í•˜ê³ 
+			((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "incomplete", 0);//add
+			//ipì¶œë ¥ ì´ë”ë„· ?????
+			byte[] send = ObjToByte(ARPRequest, new byte[0], 0);//ARPë¥¼ ë°”ì´íŠ¸ë¡œ ë°”ê¾¸ì–´ sendë°°ì—´ì— ì €ì¥
+			
+			((EthernetLayer)this.GetUnderLayer()).Send(send, send.length);
 			Thread thread = new Thread(timer_3min);
 			thread.start();
 		}
 		return true;
 	}
-
-	public void GratuitousARP_MAC(_ETHERNET_ADDR newMacAddr) {
-
-		// updated MAC addr
-		if (newMacAddr != my_enet_addr) {
-
-			// set my IP address as dstaddr
-			ARPRequest.ip_dstaddr = my_ip_addr;
-			ARPRequest.enet_srcaddr = newMacAddr;
-
-			// send ARP request
-//         ((EthernetLayer)this.GetUnderLayer()).Send(ARPRequest, ARPRequest.length);
-
-		}
-
-	}
-
-	public byte[] makeARPreply(byte[] input) {
-
-		_ARP_HEADER ARPReply = new _ARP_HEADER();
-		ARPReply.op[0] = (byte) 0x00;
-		ARPReply.op[1] = (byte) 0x02;
-		ARPReply.ip_dstaddr = new _IP_ADDR(Arrays.copyOfRange(input, 14, 18));
-		ARPReply.ip_srcaddr = new _IP_ADDR(Arrays.copyOfRange(input, 24, 28));
-		ARPReply.enet_dstaddr = new _ETHERNET_ADDR(Arrays.copyOfRange(input, 8, 14));
-		ARPReply.enet_srcaddr = new _ETHERNET_ADDR(this.my_enet_addr.addr);
-		return ObjToByte(ARPReply, new byte[0], 0);
-
-	}
-
+	
 	public boolean Receive(byte[] input) {
-
-		// ARP_request
-		if (input[7] == 1) {
-
-			// destination IP addr = mine
-			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 24, 28))) {
-
-//            ((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 0);//add
-
-				// Ãâ·Â??
-				Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
-				Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
-
-				byte[] send = makeARPreply(input);
-				((EthernetLayer) this.GetUnderLayer()).Send(send, send.length);
-
-				ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
-				Thread thread = new Thread(timer_20min);
-				thread.start();
-
-				return true;
-			}
-			// destination IP addr != mine
-			else if (!addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 24, 28))) {
-
-				// MAC addr changed
-				if (!addr_isEquals(this.my_enet_addr.addr, Arrays.copyOfRange(input, 8, 14))) {
-
-					// update table
-
-				}
-
-				byte[] dstIPaddr = Arrays.copyOfRange(input, 24, 28);
-				for (int i = 0; i < this.proxyTable.length; i++) { // search proxy table
-
-					byte[] proxyEntreeElement = proxyTable[i].ip_addr.addr;
-					if (addr_isEquals(dstIPaddr, proxyEntreeElement)) { // ÇÁ·Ï½Ã ¿£Æ®¸®¿¡ ¿äÃ»ÇÑ IP°¡ Á¸ÀçÇÏ¸é
-
-						byte[] send = makeARPreply(input);
-						((EthernetLayer) this.GetUnderLayer()).Send(send, send.length);
-
-//                  ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
-						Thread thread = new Thread(timer_20min);
-						thread.start();
-
-						return true;
-
-					}
-				}
-
-			}
-
-			// Ãâ¹ßÁö ipÁÖ¼Ò¿Í macÁÖ¼Ò¸¦ Å×ÀÌºí¿¡ ÀúÀåÇÔ
+		if(input[7] == 1) {//ìì‹ ì´ ëª©ì ì§€ëŠ” ì•„ë‹ˆì§€ë§Œ ARP_reqì— ëŒ€í•´ì„œ ì¶œë°œì§€ ipì£¼ì†Œì™€ macì£¼ì†Œë¥¼ í…Œì´ë¸”ì— ì €ì¥í•¨
+			
 			Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
 			Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
-			((FileChatDlg) this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18),
-					Arrays.copyOfRange(input, 8, 14), "complete", 0);// add
-
-			// ip ÀÌ´õ³İ Ãâ·Â
+			((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 0);//add
+			//ip ì´ë”ë„· ì¶œë ¥
+			ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
+			Thread thread = new Thread(timer_20min);
+			thread.start();
+		}
+		else if(addr_isEquals(this.my_ip_addr.addr ,Arrays.copyOfRange(input, 24, 28)) && input[7] == 1) {//ìì‹ ì´ ëª©ì ì§€ ì´ë©° ARP_reqì¸ ê²½ìš°
+			((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 0);//add
+			//ip ì´ë”ë„· ì¶œë ¥
+			Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
+			Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
+			_ARP_HEADER ARPReply = new _ARP_HEADER();
+			ARPReply.op[0] = (byte)0x00;
+			ARPReply.op[1] = (byte)0x02;
+			ARPReply.ip_dstaddr = new _IP_ADDR(Arrays.copyOfRange(input, 14, 18));
+			ARPReply.ip_srcaddr = new _IP_ADDR(Arrays.copyOfRange(input, 24, 28));
+			ARPReply.enet_dstaddr = new _ETHERNET_ADDR(Arrays.copyOfRange(input, 8, 14));
+			ARPReply.enet_srcaddr = new _ETHERNET_ADDR(this.my_enet_addr.addr);
+			byte[] send = ObjToByte(ARPReply, new byte[0], 0);
+			((EthernetLayer)this.GetUnderLayer()).Send(send, send.length);
+			
 			ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
 			Thread thread = new Thread(timer_20min);
 			thread.start();
 
+			return true;
 		}
-		// ARP_reply
-		else if (input[7] == 2) {
+		else if(!addr_isEquals(this.my_ip_addr.addr ,Arrays.copyOfRange(input, 24, 28)) && input[7] == 1) { // ìì‹ ì´ ëª©ì ì§€ê°€ ì•„ë‹ˆë©° ARP_reqì¸ ê²½ìš°ì´ë¯€ë¡œ í”„ë¡ì‹œ ì—”íŠ¸ë¦¬ í™•ì¸
+			byte[] temp = Arrays.copyOfRange(input, 24, 28);
+			
+			// í”„ë¡ì‹œ ì—”íŠ¸ë¦¬ íƒìƒ‰
+			for (int i = 0; i < this.proxyTable.length; i++) {
+				byte[] proxyEntreeElement = proxyTable[i].ip_addr.addr;
+				
+				if (addr_isEquals(temp, proxyEntreeElement)) { //í”„ë¡ì‹œ ì—”íŠ¸ë¦¬ì— ìš”ì²­í•œ IPê°€ ì¡´ì¬í•˜ë©´
+					_ARP_HEADER ARPReply = new _ARP_HEADER();
+					ARPReply.op[0] = (byte)0x00;
+					ARPReply.op[1] = (byte)0x02;
+					
+					ARPReply.ip_dstaddr = new _IP_ADDR(Arrays.copyOfRange(input, 14, 18));
+					ARPReply.ip_srcaddr = new _IP_ADDR(Arrays.copyOfRange(input, 24, 28));
+					ARPReply.enet_dstaddr = new _ETHERNET_ADDR(Arrays.copyOfRange(input, 8, 14));
+					ARPReply.enet_srcaddr = new _ETHERNET_ADDR(this.my_enet_addr.addr);
+					byte[] send = ObjToByte(ARPReply, new byte[0], 0);
+					((EthernetLayer)this.GetUnderLayer()).Send(send, send.length);
+					
+//					ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
+					Thread thread = new Thread(timer_20min);
+					thread.start();
 
-			// destination IP address is mine
-			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 24, 28))) {
-				System.out.println("!! Duplicate IP address sent from " + Arrays.copyOfRange(input, 8, 14));
+					return true;
+				}
 			}
 
-			// destination IP address is not mine
-			else {
-
-				Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
-				((FileChatDlg) this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18),
-						Arrays.copyOfRange(input, 8, 14), "complete", 2);// add
-
-				// ip ÀÌ´õ³İ Ãâ·Â
-				ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
-				Thread thread = new Thread(timer_20min);
-				thread.start();
-
-			}
+		}
+		else if(addr_isEquals(this.my_ip_addr.addr ,Arrays.copyOfRange(input, 24, 28)) && input[7] == 2){//ARP_replyê°€ ë„ì°©í•œ ê²½ìš°
+			Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
+			((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 2);//add
+			//ip ì´ë”ë„· ì¶œë ¥
+			ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
+			Thread thread = new Thread(timer_20min);
+			thread.start();
 		}
 		return false;
 	}
-
+	
 	public byte[] ObjToByte(_ARP_HEADER ARPHeader, byte[] input, int length) {
 		byte[] buf = new byte[length + 28];
-
+		
 		buf[0] = ARPHeader.hard_type[0];
 		buf[1] = ARPHeader.hard_type[1];
 		buf[2] = ARPHeader.prot_type[0];
@@ -349,19 +312,19 @@ public class ARPLayer implements BaseLayer {
 		buf[5] = ARPHeader.prot_size[0];
 		buf[6] = ARPHeader.op[0];
 		buf[7] = ARPHeader.op[1];
-
-		for (int i = 0; i < 6; i++)
+		
+		for(int i = 0; i < 6; i++)
 			buf[8 + i] = ARPHeader.enet_srcaddr.addr[i];
-		for (int i = 0; i < 4; i++)
+		for(int i = 0; i < 4; i++)
 			buf[14 + i] = ARPHeader.ip_srcaddr.addr[i];
-		for (int i = 0; i < 6; i++)
+		for(int i = 0; i < 6; i++)
 			buf[18 + i] = ARPHeader.enet_dstaddr.addr[i];
-		for (int i = 0; i < 4; i++)
+		for(int i = 0; i < 4; i++)
 			buf[24 + i] = ARPHeader.ip_dstaddr.addr[i];
-
+		
 		return buf;
 	}
-
+	
 	@Override
 	public String GetLayerName() {
 		// TODO Auto-generated method stub
@@ -384,6 +347,7 @@ public class ARPLayer implements BaseLayer {
 		return p_aUpperLayer.get(nindex);
 	}
 
+	
 	@Override
 	public void SetUnderLayer(BaseLayer pUnderLayer) {
 		// TODO Auto-generated method stub
@@ -407,4 +371,5 @@ public class ARPLayer implements BaseLayer {
 		pUULayer.SetUnderLayer(this);
 	}
 
+	
 }
