@@ -40,6 +40,7 @@ public class NILayer implements BaseLayer {
 
 	public void SetAdapterNumber(int iNum) {
 		m_iNumAdapter = iNum;
+//		m_iNumAdapter = 2;
 		PacketStarDriver();
 		Receive();
 	}

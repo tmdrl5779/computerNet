@@ -7,8 +7,10 @@ import ARP.BaseLayer;
 
 public class IPLayer implements BaseLayer{
 	public int nUpperLayerCount = 0;
+	public int nUnderLayerCount = 0;
 	public String pLayerName = null;
-	public BaseLayer p_UnderLayer = null;	
+	//public BaseLayer p_UnderLayer = null;
+	public ArrayList<BaseLayer> p_UnderLayer = new ArrayList<BaseLayer>();
 	public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
 	
 	
@@ -79,7 +81,7 @@ public class IPLayer implements BaseLayer{
 	public boolean Send(byte[] input, int length) {
 		
 		byte[] send = ObjToByte(m_sHeader, input, length);
-		(this.GetUnderLayer()).Send(send, send.length);
+		((ARPLayer)this.GetUnderLayer(1)).Send(send, send.length);
 		return true;
 	}
 	
@@ -155,7 +157,14 @@ public class IPLayer implements BaseLayer{
 		// TODO Auto-generated method stub
 		if (p_UnderLayer == null)
 			return null;
-		return p_UnderLayer;
+		return p_UnderLayer.get(0);
+	}
+	
+	public BaseLayer GetUnderLayer(int i) {
+		// TODO Auto-generated method stub
+		if (i < 0 || i > nUnderLayerCount || nUnderLayerCount < 0)
+			return null;
+		return this.p_UnderLayer.get(i);
 	}
 
 	@Override
@@ -169,9 +178,14 @@ public class IPLayer implements BaseLayer{
 	@Override
 	public void SetUnderLayer(BaseLayer pUnderLayer) {
 		// TODO Auto-generated method stub
+//		if (pUnderLayer == null)
+//			return;
+//		p_UnderLayer = pUnderLayer;
+//		
 		if (pUnderLayer == null)
 			return;
-		p_UnderLayer = pUnderLayer;
+		
+		this.p_UnderLayer.add(nUnderLayerCount++, pUnderLayer);
 	}
 
 	@Override

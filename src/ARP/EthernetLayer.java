@@ -137,6 +137,7 @@ public class EthernetLayer implements BaseLayer {
 	
 	public boolean SendARP(byte[] input, int length) {
 		byte[] bytes = ObjToByte_ARP(ethernetHeader, input, length);
+		((NILayer) this.GetUnderLayer()).SetAdapterNumber(7);
 		this.GetUnderLayer().Send(bytes, length + 14);
 		return true;
 	}
@@ -166,7 +167,7 @@ public class EthernetLayer implements BaseLayer {
 				return false;
 			}
 		}
-		// ÆÄÀÏ
+		// ï¿½ï¿½ï¿½ï¿½
 //		if ((input[12]) == (byte)0x20 && (input[13]) == (byte)0x90) {
 //			data = RemoveEtherHeader(input, input.length);
 //			this.GetUpperLayer(1).Receive(data);
@@ -175,14 +176,14 @@ public class EthernetLayer implements BaseLayer {
 		if (this.isItMyPacket(input))
 			return false;
 		
-		// µ¥ÀÌÅÍ Çì´õ Å¸ÀÔÀÌ ARP¸é ARPLayer·Î ¿Ã¸²
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ARPï¿½ï¿½ ARPLayerï¿½ï¿½ ï¿½Ã¸ï¿½
 		if (this.isItARP(input)) {
 			data = RemoveEtherHeader(input, input.length);
 			this.GetUpperLayer(0).Receive(data);
 			return true;
 		}
 		
-		// µ¥ÀÌÅÍ Çì´õ Å¸ÀÔÀÌ IP¸é IPLayer·Î ¿Ã¸²
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ IPï¿½ï¿½ IPLayerï¿½ï¿½ ï¿½Ã¸ï¿½
 		if (this.isItIP(input)) {
 			data = RemoveEtherHeader(input, input.length);
 			this.GetUpperLayer(1).Receive(data);
@@ -194,7 +195,7 @@ public class EthernetLayer implements BaseLayer {
 		return false;
 	}
 	
-	// µ¥ÀÌÅÍ Çì´õ Å¸ÀÔ°Ë»çÇÏ¿© ARPÀÎÁö È®ÀÎ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Å¸ï¿½Ô°Ë»ï¿½ï¿½Ï¿ï¿½ ARPï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 	public boolean isItARP(byte[] head) {
 		if ((head[12]) == (byte)0x08 && (head[13]) == (byte)0x06)
 			return true;
@@ -202,7 +203,7 @@ public class EthernetLayer implements BaseLayer {
 			return false;
 	}
 	
-	// µ¥ÀÌÅÍ Çì´õ Å¸ÀÔ°Ë»çÇÏ¿© IPÀÎÁö È®ÀÎ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Å¸ï¿½Ô°Ë»ï¿½ï¿½Ï¿ï¿½ IPï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 	public boolean isItIP(byte[] head) {
 		if ((head[12]) == (byte)0x08 && (head[13]) == (byte)0x00)
 			return true;
@@ -210,7 +211,7 @@ public class EthernetLayer implements BaseLayer {
 			return false;
 	}
 	
-	// dst¿Í src°¡ °°À¸¸é ³ªÀÇ ÆÐÅ¶
+	// dstï¿½ï¿½ srcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶
 	public boolean isItMyPacket(byte[] head) {
 		for (int i = 0; i <= 5; i++) {
 			if (head[i] != head[i + 6])

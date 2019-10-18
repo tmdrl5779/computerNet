@@ -248,11 +248,11 @@ public class ARPLayer implements BaseLayer {
 			ARPRequest.enet_srcaddr.addr = this.my_enet_addr.addr;
 			ARPRequest.op[0] = (byte) 0x00;
 			ARPRequest.op[1] = (byte) 0x01;// ARP瑜� �슂泥��쑝濡� ���옣�븯怨�
-			((FileChatDlg)this.GetUpperLayer(2)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "incomplete", 0);//add
+			((FileChatDlg)this.GetUpperLayer(0).GetUpperLayer(0).GetUpperLayer(0)).setChattingArea(ARPRequest.ip_dstaddr.addr, null, "incomplete", 0);//add
 			// ip異쒕젰 �씠�뜑�꽬 ?????
 			byte[] send = ObjToByte(ARPRequest, new byte[0], 0);// ARP瑜� 諛붿씠�듃濡� 諛붽씀�뼱 send諛곗뿴�뿉 ���옣
 
-			((EthernetLayer) this.GetUnderLayer()).Send(send, send.length);
+			((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);
 			Thread thread = new Thread(timer_3min);
 			thread.start();
 		}
@@ -409,13 +409,12 @@ public class ARPLayer implements BaseLayer {
 		return p_aUpperLayer.get(nindex);
 	}
 
-	
 	@Override
 	public void SetUnderLayer(BaseLayer pUnderLayer) {
 		// TODO Auto-generated method stub
-		if (p_UnderLayer == null)
+		if (pUnderLayer == null)
 			return;
-		this.p_UnderLayer = pUnderLayer;
+		p_UnderLayer = pUnderLayer;
 	}
 
 	@Override

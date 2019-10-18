@@ -97,7 +97,8 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 
 //		m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *Chat ( *GUI ) ) )");
 //		m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ARP ( *IP ) *IP ( *TCP ( *GUI ) ) ) )");
-		m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ARP ( *IP ( *TCP ( *GUI ) ) ) *IP ( *TCP ( *GUI ) ) ) )");
+//		m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ARP ( *IP ( *TCP ( *GUI ) ) ) *IP ( *TCP ( *GUI ) ) ) )");
+		m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *IP ( *TCP ( *GUI ) ) *ARP ( *IP ( *TCP ( *GUI ) ) ) ) )");
 	}
 
 	public FileChatDlg(String pName) {
