@@ -382,12 +382,6 @@ public class ARPLayer implements BaseLayer {
 
 			// destination IP address is mine
 			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 24, 28))) {
-				System.out.println("!! Duplicate IP address sent from " + Arrays.copyOfRange(input, 8, 14));
-			}
-
-			// destination IP address is not mine
-			else {
-
 				Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
 				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 2);// add
 
@@ -395,7 +389,12 @@ public class ARPLayer implements BaseLayer {
 				ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
 				Thread thread = new Thread(timer_20min);
 				thread.start();
+				
+			}
 
+			// destination IP address is not mine
+			else if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 14, 18))){
+				System.out.println("!! Duplicate IP address sent from " + Arrays.copyOfRange(input, 14, 18));
 			}
 		}
 		return false;
