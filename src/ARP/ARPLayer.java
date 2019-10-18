@@ -265,7 +265,12 @@ public class ARPLayer implements BaseLayer {
 		// search cache table --> has IP?
 		if (search_table(ARPRequest.ip_dstaddr.addr) != null) {
 			
-			((EthernetLayer) this.GetUnderLayer()).Send(input, input.length);
+			try {
+				((EthernetLayer) this.GetUnderLayer()).SendARP(input, input.length);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		
 		} else {// cache Table has no IP --> ARP request send
 			
@@ -305,7 +310,13 @@ public class ARPLayer implements BaseLayer {
 				Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
 
 				byte[] send = makeARPreply(input);
-				((EthernetLayer) this.GetUnderLayer()).Send(send, send.length);
+				
+				try {
+					((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
 				ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
 				Thread thread = new Thread(timer_20min);
@@ -337,7 +348,12 @@ public class ARPLayer implements BaseLayer {
 					if (addr_isEquals(dstIPaddr, proxyEntreeElement)) { // is it exist on proxy table?
 
 						byte[] send = makeARPreply(input);
-						((EthernetLayer) this.GetUnderLayer()).Send(send, send.length);
+						try {
+							((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 
 				                ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
 						Thread thread = new Thread(timer_20min);

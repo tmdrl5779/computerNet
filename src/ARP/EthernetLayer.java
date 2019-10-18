@@ -77,6 +77,10 @@ public class EthernetLayer implements BaseLayer {
 	
 	public byte[] ObjToByte_ARP(_ETHERNET_Frame Header, byte[] input, int length) {
 		byte[] buf = new byte[length + 14];
+		byte[] temp = new byte[6];
+		System.arraycopy(input, 8, temp, 0, 6);
+		this.SetEnetSrcAddress(temp);
+		
 		byte[] srctemp = Header.enet_srcaddr.addr;
 		byte[] dsttemp = Header.enet_dstaddr.addr;
 		
@@ -112,13 +116,6 @@ public class EthernetLayer implements BaseLayer {
 			buf[12] = (byte)0x08;
 			buf[13] = (byte)0x06;
 		}
-
-//		buf[0] = dsttemp[0];
-//		buf[1] = dsttemp[1];
-//		buf[2] = dsttemp[2];
-//		buf[3] = dsttemp[3];
-//		buf[4] = dsttemp[4];
-//		buf[5] = dsttemp[5];
 		
 		for (int i = 0; i < length; i++)
 			buf[14 + i] = input[i];
