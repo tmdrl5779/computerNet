@@ -221,8 +221,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 							@Override
 							public void actionPerformed(ActionEvent e) {
 								// TODO Auto-generated method stub
-								((ARPLayer) m_LayerMgr.GetLayer("ARP")).Proxy_Add_ipAndMac_addr(
-										hexStringToByteArray(ip_address.getText()),
+								((ARPLayer) m_LayerMgr.GetLayer("ARP")).Proxy_Add_ipAndMac_addr(ip_address.getText().getBytes(),
 										hexStringToByteArray(mac_address.getText()));
 								String iptemp, mactemp, result = "";
 								for (int i = 0; i < ((ARPLayer) m_LayerMgr.GetLayer("ARP")).proxyTable.length; i++) {
