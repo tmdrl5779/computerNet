@@ -155,6 +155,7 @@ public class FileChatDlg extends JFrame implements BaseLayer {
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				ChattingArea.setText("");
+				((ARPLayer)m_LayerMgr.GetLayer("ARP")).del_all();
 			}
 		});
 
