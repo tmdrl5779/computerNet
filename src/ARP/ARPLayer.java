@@ -228,18 +228,12 @@ public class ARPLayer implements BaseLayer {
 		for (int i = 0; i < 4; i++)
 			srcIPfromIPlayer[i] = packetFromIP_layer[12 + i];
 		
-		// updated MAC addr
-		if(GratuitousFlag == true){
+		// dst IP is mine 
+		if(dstIPfromApp == my_ip_addr.addr){ GratuitousFlag = true;	}
+		
+		// set ARP with dst IP
+		ARP_Request.ip_dstaddr.addr = dstIPfromApp;
 			
-			// set dst IP as my IP address
-			ARP_Request.ip_dstaddr = my_ip_addr;
-
-		} else {
-
-			// set dst IP as received IP from upper layer
-			ARP_Request.ip_dstaddr.addr = dstIPfromApp;
-			
-		}
 		// search cache table --> has IP?
 		if (search_table(ARP_Request.ip_dstaddr.addr) != null) {
 						
