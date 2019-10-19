@@ -196,15 +196,18 @@ public class ARPLayer implements BaseLayer {
 
 	public void sendARPrequest() {
 		
-		add_Table_IP(ARP_Request.ip_dstaddr.addr);
+		ARP_Request.ip_dstaddr.addr = this.my_ip_addr.addr;
 		ARP_Request.enet_srcaddr.addr = this.my_enet_addr.addr;
 		ARP_Request.op[0] = (byte) 0x00;
 		ARP_Request.op[1] = (byte) 0x01;
-		((FileChatDlg)this.GetUpperLayer(0).GetUpperLayer(0).GetUpperLayer(0)).setChattingArea(ARP_Request.ip_dstaddr.addr, null, "incomplete", 0);//add
 		
 		byte[] send = ObjToByte(ARP_Request, new byte[0], 0);
 		try {((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);	
 		} catch (IOException e) {e.printStackTrace();}
+		
+		add_Table_IP(ARP_Request.ip_dstaddr.addr);
+		((FileChatDlg)this.GetUpperLayer(0).GetUpperLayer(0).GetUpperLayer(0))
+						.setChattingArea(ARP_Request.ip_dstaddr.addr, null, "incomplete", 0);
 		
 	}
 	public boolean Send(byte[] input, int length){
