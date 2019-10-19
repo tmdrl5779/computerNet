@@ -218,7 +218,7 @@ public class ARPLayer implements BaseLayer {
 						.setChattingArea(ARP_Request.ip_dstaddr.addr, null, "incomplete", 0);
 		
 	}
-	public boolean Send(byte[] input, int length){
+	public boolean Send(byte[] inputFromApp, int length){
 
 		// updated MAC addr
 		if(GratuitousFlag == true){
@@ -229,16 +229,18 @@ public class ARPLayer implements BaseLayer {
 		} else {
 		
 			for (int i = 0; i < 4; i++)
-				ARP_Request.ip_dstaddr.addr[i] = input[16 + i];
-			for (int i = 0; i < 4; i++)
-				ARP_Request.ip_srcaddr.addr[i] = input[12 + i];
+				ARP_Request.ip_dstaddr.addr[i] = inputFromApp[16 + i];
+//			for (int i = 0; i < 4; i++)
+//				ARP_Request.ip_srcaddr.addr[i] = inputFromApp[12 + i];
 			
 		}
 		// search cache table --> has IP?
 		if (search_table(ARP_Request.ip_dstaddr.addr) != null) {
 			
-			try {((EthernetLayer) this.GetUnderLayer()).SendARP(input, input.length);
-			} catch (IOException e) { e.printStackTrace();}
+			
+			
+//			try {((EthernetLayer) this.GetUnderLayer()).SendARP(inputFromApp, inputFromApp.length);
+//			} catch (IOException e) { e.printStackTrace();}
 		
 		} else {// cache Table has no IP --> ARP request send
 			
@@ -263,21 +265,21 @@ public class ARPLayer implements BaseLayer {
 
 	}
 
-	public boolean Receive(byte[] input) {
+	public boolean Receive(byte[] packetfromEtherLayer) {
 
 		// ARP_request
-		if (input[7] == (byte)0x01) {
+		if (packetfromEtherLayer[7] == (byte)0x01) {
 
 			// destination IP addr = mine
-			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 24, 28))) {
+			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(packetfromEtherLayer, 24, 28))) {
 
-				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 0);//add
+				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(packetfromEtherLayer, 14, 18), Arrays.copyOfRange(packetfromEtherLayer, 8, 14), "complete", 0);//add
 
 				// 
-				add_Table_IP(Arrays.copyOfRange(input, 14, 18));
-				add_Table_MAC(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
+				add_Table_IP(Arrays.copyOfRange(packetfromEtherLayer, 14, 18));
+				add_Table_MAC(Arrays.copyOfRange(packetfromEtherLayer, 14, 18), Arrays.copyOfRange(packetfromEtherLayer, 8, 14));
 
-				byte[] send = makeARPreply(input);
+				byte[] send = makeARPreply(packetfromEtherLayer);
 				
 				try {
 					((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);
@@ -286,21 +288,21 @@ public class ARPLayer implements BaseLayer {
 					e.printStackTrace();
 				}
 
-				ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
+				ip_addr_temp = Arrays.copyOfRange(packetfromEtherLayer, 14, 18);
 				Thread thread = new Thread(timer_20min);
 				thread.start();
 
 				return true;
 			}
 			// destination IP addr != mine
-			else if (!addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 24, 28))) {
+			else if (!addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(packetfromEtherLayer, 24, 28))) {
 
 				// search dst IP addr from cache table --> src MAC addr changed ?
 				
-				if (search_table(Arrays.copyOfRange(input, 24, 28)).addr != Arrays.copyOfRange(input, 8, 14)) {
+				if (search_table(Arrays.copyOfRange(packetfromEtherLayer, 24, 28)).addr != Arrays.copyOfRange(packetfromEtherLayer, 8, 14)) {
 						
 					// add new MAC addr to table
-					add_Table_MAC(Arrays.copyOfRange(input, 24, 28), Arrays.copyOfRange(input, 8, 14));
+					add_Table_MAC(Arrays.copyOfRange(packetfromEtherLayer, 24, 28), Arrays.copyOfRange(packetfromEtherLayer, 8, 14));
 					
 					// timer restart
 					Thread thread = new Thread(timer_20min);
@@ -308,7 +310,7 @@ public class ARPLayer implements BaseLayer {
 
 				}
 
-				byte[] dstIPaddr = Arrays.copyOfRange(input, 24, 28);
+				byte[] dstIPaddr = Arrays.copyOfRange(packetfromEtherLayer, 24, 28);
 				
 				// search proxy table
 				for (int i = 0; i < this.proxyTable.length; i++) { 
@@ -318,7 +320,7 @@ public class ARPLayer implements BaseLayer {
 					// is it exist on proxy table?
 					if (addr_isEquals(dstIPaddr, proxyEntreeElement)) { 
 
-						byte[] send = makeARPreply(input);
+						byte[] send = makeARPreply(packetfromEtherLayer);
 						try {
 							((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);
 						} catch (IOException e) {
@@ -326,7 +328,7 @@ public class ARPLayer implements BaseLayer {
 							e.printStackTrace();
 						}
 
-				                ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
+				                ip_addr_temp = Arrays.copyOfRange(packetfromEtherLayer, 14, 18);
 						Thread thread = new Thread(timer_20min);
 						thread.start();
 
@@ -337,40 +339,41 @@ public class ARPLayer implements BaseLayer {
 
 			}
 			
-			add_Table_IP(Arrays.copyOfRange(input, 14, 18));
-			add_Table_MAC(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
-			((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18),
-					Arrays.copyOfRange(input, 8, 14), "complete", 0);// add
+			add_Table_IP(Arrays.copyOfRange(packetfromEtherLayer, 14, 18));
+			add_Table_MAC(Arrays.copyOfRange(packetfromEtherLayer, 14, 18), Arrays.copyOfRange(packetfromEtherLayer, 8, 14));
+			((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(packetfromEtherLayer, 14, 18),
+					Arrays.copyOfRange(packetfromEtherLayer, 8, 14), "complete", 0);// add
 
-			ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
+			ip_addr_temp = Arrays.copyOfRange(packetfromEtherLayer, 14, 18);
 			Thread thread = new Thread(timer_20min);
 			thread.start();
 
 		}
 		// ARP_reply
-		else if (input[7] == (byte)0x02) {
+		else if (packetfromEtherLayer[7] == (byte)0x02) {
+			
 			// source IP address is not mine
-						if (!addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 14, 18))){
+			if (!addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(packetfromEtherLayer, 14, 18))){
 
-							add_Table_MAC(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
-							((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 2);// add
+				add_Table_MAC(Arrays.copyOfRange(packetfromEtherLayer, 14, 18), Arrays.copyOfRange(packetfromEtherLayer, 8, 14));
+				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0))
+										.setChattingArea(Arrays.copyOfRange(packetfromEtherLayer, 14, 18),
+											Arrays.copyOfRange(packetfromEtherLayer, 8, 14), "complete", 2);
 
 							
-							ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
-							Thread thread = new Thread(timer_20min);
-							thread.start();
+				ip_addr_temp = Arrays.copyOfRange(packetfromEtherLayer, 14, 18);
+				Thread thread = new Thread(timer_20min);
+				thread.start();
 
-						}
-			
+			}
 			// source IP address is mine
 			else {
-				System.out.println("!! Duplicate IP address sent from " + Arrays.copyOfRange(input, 8, 14));
+				System.out.println("!! Duplicate IP address sent from " + Arrays.copyOfRange(packetfromEtherLayer, 8, 14));
 			}
 
-					}
+		}
 		return false;
 	}
-
 	
 	public byte[] ObjToByte(_ARP_HEADER ARPHeader, byte[] input, int length) {
 		byte[] buf = new byte[length + 28];
