@@ -200,11 +200,14 @@ public class ARPLayer implements BaseLayer {
 		ARP_Request.ip_srcaddr.addr = this.my_ip_addr.addr;
 		ARP_Request.enet_srcaddr.addr = this.my_enet_addr.addr;
 		
+		add_Table_IP(ARP_Request.ip_dstaddr.addr);
+		
+		// send packet to Ethernet Layer
 		byte[] send = ObjToByte(ARP_Request, new byte[0], 0);
 		try {((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);	
 		} catch (IOException e) {e.printStackTrace();}
 		
-		add_Table_IP(ARP_Request.ip_dstaddr.addr);
+		// for GUI app display
 		((FileChatDlg)this.GetUpperLayer(0).GetUpperLayer(0).GetUpperLayer(0))
 						.setChattingArea(ARP_Request.ip_dstaddr.addr, null, "incomplete", 0);
 		
