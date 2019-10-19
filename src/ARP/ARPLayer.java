@@ -221,7 +221,7 @@ public class ARPLayer implements BaseLayer {
 						.setChattingArea(packet_ARP.ip_dstaddr.addr, null, "incomplete", 0);
 		
 	}
-	public boolean Send(byte[] packetFromIP_layer, int length){ // where is ARP reply???
+	public boolean Send(byte[] packetFromIP_layer, int length){
 
 		// parse packet from IP layer
 		byte[] dstIPfromApp = new byte[4];
