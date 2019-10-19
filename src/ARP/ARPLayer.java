@@ -189,7 +189,13 @@ public class ARPLayer implements BaseLayer {
 	public void getNewMacAddr(byte[] macAddr) {
 		
 		this.newMacAddr = new _ETHERNET_ADDR(macAddr);
-		if(newMacAddr != my_enet_addr) GratuitousFlag = true;
+		if(newMacAddr != my_enet_addr) {
+			
+			this.GratuitousFlag = true;
+			
+			// update my MAC addr as new MAC addr
+			this.my_enet_addr = newMacAddr;
+		}
 		
 	}
 
@@ -217,16 +223,13 @@ public class ARPLayer implements BaseLayer {
 		// updated MAC addr
 		if(GratuitousFlag == true){
 			
-			// set my IP address as dst and scr addr
+			// set my IP address as dst IP
 			ARP_Request.ip_dstaddr = my_ip_addr;
-			ARP_Request.ip_srcaddr = my_ip_addr;
-			// update my MAC addr as new MAC addr
-			my_enet_addr = newMacAddr;
 
 		} else {
 		
 			for (int i = 0; i < 4; i++)
-			ARP_Request.ip_dstaddr.addr[i] = input[16 + i];
+				ARP_Request.ip_dstaddr.addr[i] = input[16 + i];
 			for (int i = 0; i < 4; i++)
 				ARP_Request.ip_srcaddr.addr[i] = input[12 + i];
 			
@@ -234,12 +237,8 @@ public class ARPLayer implements BaseLayer {
 		// search cache table --> has IP?
 		if (search_table(ARP_Request.ip_dstaddr.addr) != null) {
 			
-			try {
-				((EthernetLayer) this.GetUnderLayer()).SendARP(input, input.length);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			try {((EthernetLayer) this.GetUnderLayer()).SendARP(input, input.length);
+			} catch (IOException e) { e.printStackTrace();}
 		
 		} else {// cache Table has no IP --> ARP request send
 			
