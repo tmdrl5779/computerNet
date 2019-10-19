@@ -55,11 +55,11 @@ public class ARPLayer implements BaseLayer {
 	
 	byte[] ip_addr_temp; // for Timer
 	public Array[] table = new Array[0];
-	public Array[] proxyTable = new Array[0]; // proxyTable
+	public Array[] proxyTable = new Array[0];
 	
 	public _IP_ADDR my_ip_addr = new _IP_ADDR(); // 0x00
 	public _ETHERNET_ADDR my_enet_addr = new _ETHERNET_ADDR(); // 0x00
-	public _ETHERNET_ADDR newMacAddr;
+	public _ETHERNET_ADDR newMacAddr; // for Gratuitous ARP 
 	boolean GratuitousFlag = false;
 	
 	public void set_my_ip_addr(byte[] ip_addr) {
@@ -95,18 +95,18 @@ public class ARPLayer implements BaseLayer {
 	public ARPLayer(String pName) throws UnknownHostException, SocketException {
 		
 		pLayerName = pName;
+		byte[] temp_addr = new byte[4];
 		
-		// set my MAC addr to ARPrequest src MAC addr
+		// set my MAC addr from InetAddress
 		InetAddress localHost = InetAddress.getLocalHost();
-		NetworkInterface netif = NetworkInterface.getByInetAddress(localHost);
-		ARP_Request.enet_srcaddr.addr = netif.getHardwareAddress();
-		this.set_my_enet_addr(ARP_Request.enet_srcaddr.addr);
+		NetworkInterface nif = NetworkInterface.getByInetAddress(localHost);
+		this.set_my_enet_addr(nif.getHardwareAddress());
 		
-		// set my IP addr to ARPrequest src IP addr
+		// set my IP addr from InetAddress --> set src IP of ARP_Ruquest
 		StringTokenizer st = new StringTokenizer(InetAddress.getLocalHost().getHostAddress(), ".");
 		for(int i = 0; i < 4; i++)
-			ARP_Request.ip_srcaddr.addr[i] = (byte) Integer.parseInt(st.nextToken());
-		this.set_my_ip_addr(ARP_Request.ip_srcaddr.addr);
+			temp_addr[i] = (byte) Integer.parseInt(st.nextToken());
+		this.set_my_ip_addr(temp_addr);
 
 	}
 	
@@ -306,10 +306,13 @@ public class ARPLayer implements BaseLayer {
 
 				byte[] dstIPaddr = Arrays.copyOfRange(input, 24, 28);
 				
-				for (int i = 0; i < this.proxyTable.length; i++) { // search proxy table
+				// search proxy table
+				for (int i = 0; i < this.proxyTable.length; i++) { 
 
 					byte[] proxyEntreeElement = proxyTable[i].ip_addr.addr;
-					if (addr_isEquals(dstIPaddr, proxyEntreeElement)) { // is it exist on proxy table?
+					
+					// is it exist on proxy table?
+					if (addr_isEquals(dstIPaddr, proxyEntreeElement)) { 
 
 						byte[] send = makeARPreply(input);
 						try {
