@@ -288,7 +288,7 @@ public class ARPLayer implements BaseLayer {
 					e.printStackTrace();
 				}
 
-				ip_addr_temp = Arrays.copyOfRange(packetfromEtherLayer, 14, 18);
+				ip_addr_temp = srcIPaddr;
 				Thread thread = new Thread(timer_20min);
 				thread.start();
 
@@ -297,21 +297,17 @@ public class ARPLayer implements BaseLayer {
 			// destination IP addr != mine
 			else if (!addr_isEquals(this.my_ip_addr.addr, dstIPaddr)) {
 
-				// search dst IP addr from cache table --> src MAC addr changed ?
-				
-				if (search_table(Arrays.copyOfRange(packetfromEtherLayer, 24, 28)).addr != Arrays.copyOfRange(packetfromEtherLayer, 8, 14)) {
+				// search cache table --> src MAC addr changed ?		
+				if (search_table(dstIPaddr).addr != srcMACaddr) {
 						
-					// add new MAC addr to table
-					add_Table_MAC(Arrays.copyOfRange(packetfromEtherLayer, 24, 28), Arrays.copyOfRange(packetfromEtherLayer, 8, 14));
+					// update new MAC addr to table
+					add_Table_MAC(dstIPaddr, srcMACaddr);
 					
 					// timer restart
 					Thread thread = new Thread(timer_20min);
 					thread.start();
 
 				}
-
-				byte[] dstIPaddr = Arrays.copyOfRange(packetfromEtherLayer, 24, 28);
-				
 				// search proxy table
 				for (int i = 0; i < this.proxyTable.length; i++) { 
 
@@ -321,14 +317,10 @@ public class ARPLayer implements BaseLayer {
 					if (addr_isEquals(dstIPaddr, proxyEntreeElement)) { 
 
 						byte[] send = makeARPreply(packetfromEtherLayer);
-						try {
-							((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+						try { ((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);
+						} catch (IOException e) { e.printStackTrace(); }
 
-				                ip_addr_temp = Arrays.copyOfRange(packetfromEtherLayer, 14, 18);
+		                ip_addr_temp = srcIPaddr;
 						Thread thread = new Thread(timer_20min);
 						thread.start();
 
@@ -339,12 +331,12 @@ public class ARPLayer implements BaseLayer {
 
 			}
 			
-			add_Table_IP(Arrays.copyOfRange(packetfromEtherLayer, 14, 18));
-			add_Table_MAC(Arrays.copyOfRange(packetfromEtherLayer, 14, 18), Arrays.copyOfRange(packetfromEtherLayer, 8, 14));
-			((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(packetfromEtherLayer, 14, 18),
-					Arrays.copyOfRange(packetfromEtherLayer, 8, 14), "complete", 0);// add
+			add_Table_IP(srcIPaddr);
+			add_Table_MAC(srcIPaddr, srcMACaddr);
+			((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).
+							setChattingArea(srcIPaddr, srcMACaddr, "complete", 0);
 
-			ip_addr_temp = Arrays.copyOfRange(packetfromEtherLayer, 14, 18);
+			ip_addr_temp = srcIPaddr;
 			Thread thread = new Thread(timer_20min);
 			thread.start();
 
@@ -353,23 +345,20 @@ public class ARPLayer implements BaseLayer {
 		else if (packetfromEtherLayer[7] == (byte)0x02) {
 			
 			// source IP address is not mine
-			if (!addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(packetfromEtherLayer, 14, 18))){
+			if (!addr_isEquals(this.my_ip_addr.addr, srcIPaddr)){
 
-				add_Table_MAC(Arrays.copyOfRange(packetfromEtherLayer, 14, 18), Arrays.copyOfRange(packetfromEtherLayer, 8, 14));
+				add_Table_MAC(srcIPaddr, srcMACaddr);
 				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0))
-										.setChattingArea(Arrays.copyOfRange(packetfromEtherLayer, 14, 18),
-											Arrays.copyOfRange(packetfromEtherLayer, 8, 14), "complete", 2);
+										.setChattingArea(srcIPaddr, srcMACaddr, "complete", 2);
 
 							
-				ip_addr_temp = Arrays.copyOfRange(packetfromEtherLayer, 14, 18);
+				ip_addr_temp = srcIPaddr;
 				Thread thread = new Thread(timer_20min);
 				thread.start();
 
 			}
 			// source IP address is mine
-			else {
-				System.out.println("!! Duplicate IP address sent from " + Arrays.copyOfRange(packetfromEtherLayer, 8, 14));
-			}
+			else { System.out.println("!! Duplicate IP address sent from " + srcMACaddr); }
 
 		}
 		return false;
