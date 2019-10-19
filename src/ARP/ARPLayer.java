@@ -60,7 +60,6 @@ public class ARPLayer implements BaseLayer {
 	public _IP_ADDR my_ip_addr = new _IP_ADDR(); // 0x00
 	public _ETHERNET_ADDR my_enet_addr = new _ETHERNET_ADDR(); // 0x00
 	public _ETHERNET_ADDR newMacAddr; // for Gratuitous ARP 
-	boolean GratuitousFlag = false;
 	
 	public void set_my_ip_addr(byte[] ip_addr) {
 		this.my_ip_addr.addr = ip_addr;
@@ -191,10 +190,9 @@ public class ARPLayer implements BaseLayer {
 		this.newMacAddr = new _ETHERNET_ADDR(macAddr);
 		if(newMacAddr != my_enet_addr) {
 			
-			this.GratuitousFlag = true;
-			
 			// update my MAC addr as new MAC addr
 			this.my_enet_addr = newMacAddr;
+			
 		}
 		
 	}
@@ -227,9 +225,6 @@ public class ARPLayer implements BaseLayer {
 			dstIPfromApp[i] = packetFromIP_layer[16 + i];
 		for (int i = 0; i < 4; i++)
 			srcIPfromIPlayer[i] = packetFromIP_layer[12 + i];
-		
-		// dst IP is mine 
-		if(dstIPfromApp == my_ip_addr.addr){ GratuitousFlag = true;	}
 		
 		// set ARP with dst IP
 		ARP_Request.ip_dstaddr.addr = dstIPfromApp;
@@ -266,17 +261,23 @@ public class ARPLayer implements BaseLayer {
 
 	public boolean Receive(byte[] packetfromEtherLayer) {
 
+		// parse packet
+		byte[] srcMACaddr = Arrays.copyOfRange(packetfromEtherLayer, 8, 14);
+		byte[] srcIPaddr = Arrays.copyOfRange(packetfromEtherLayer, 14, 18);
+		byte[] dstIPaddr = Arrays.copyOfRange(packetfromEtherLayer, 24, 28);
+		
 		// ARP_request
 		if (packetfromEtherLayer[7] == (byte)0x01) {
-
+			
 			// destination IP addr = mine
-			if (addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(packetfromEtherLayer, 24, 28))) {
+			if (addr_isEquals(this.my_ip_addr.addr, dstIPaddr)) {
 
-				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(packetfromEtherLayer, 14, 18), Arrays.copyOfRange(packetfromEtherLayer, 8, 14), "complete", 0);//add
+				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0))
+				.setChattingArea(srcIPaddr, srcMACaddr, "complete", 0);//add
 
 				// 
-				add_Table_IP(Arrays.copyOfRange(packetfromEtherLayer, 14, 18));
-				add_Table_MAC(Arrays.copyOfRange(packetfromEtherLayer, 14, 18), Arrays.copyOfRange(packetfromEtherLayer, 8, 14));
+				add_Table_IP(srcIPaddr);
+				add_Table_MAC(srcIPaddr, srcMACaddr);
 
 				byte[] send = makeARPreply(packetfromEtherLayer);
 				
@@ -294,7 +295,7 @@ public class ARPLayer implements BaseLayer {
 				return true;
 			}
 			// destination IP addr != mine
-			else if (!addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(packetfromEtherLayer, 24, 28))) {
+			else if (!addr_isEquals(this.my_ip_addr.addr, dstIPaddr)) {
 
 				// search dst IP addr from cache table --> src MAC addr changed ?
 				
