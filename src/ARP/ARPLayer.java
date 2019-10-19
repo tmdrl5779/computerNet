@@ -265,28 +265,27 @@ public class ARPLayer implements BaseLayer {
 		byte[] srcMACaddr = Arrays.copyOfRange(packetfromEtherLayer, 8, 14);
 		byte[] srcIPaddr = Arrays.copyOfRange(packetfromEtherLayer, 14, 18);
 		byte[] dstIPaddr = Arrays.copyOfRange(packetfromEtherLayer, 24, 28);
+		byte[] opCode = Arrays.copyOfRange(packetfromEtherLayer, 6, 8);
+		byte[] flag_ARPrequest = new byte[]{0x00,0x01};
+		byte[] flag_ARPreply = new byte[]{0x00,0x10};
+		byte[] flag_RARPrequest = new byte[]{0x00,0x11};
+		byte[] flag_RARPreply = new byte[]{0x01,0x00};
 		
-		// ARP_request
-		if (packetfromEtherLayer[7] == (byte)0x01) {
+
+		if (opCode == flag_ARPrequest) {	
 			
-			// destination IP addr = mine
 			if (addr_isEquals(this.my_ip_addr.addr, dstIPaddr)) {
 
 				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0))
 				.setChattingArea(srcIPaddr, srcMACaddr, "complete", 0);//add
 
-				// 
 				add_Table_IP(srcIPaddr);
 				add_Table_MAC(srcIPaddr, srcMACaddr);
 
-				byte[] send = makeARPreply(packetfromEtherLayer);
-				
-				try {
-					((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				// send ARP packet to Ethernet Layer
+				byte[] send = makeARPreply(packetfromEtherLayer);	
+				try { ((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);
+				} catch (IOException e) { e.printStackTrace(); }
 
 				ip_addr_temp = srcIPaddr;
 				Thread thread = new Thread(timer_20min);
@@ -294,7 +293,6 @@ public class ARPLayer implements BaseLayer {
 
 				return true;
 			}
-			// destination IP addr != mine
 			else if (!addr_isEquals(this.my_ip_addr.addr, dstIPaddr)) {
 
 				// search cache table --> src MAC addr changed ?		
@@ -303,7 +301,6 @@ public class ARPLayer implements BaseLayer {
 					// update new MAC addr to table
 					add_Table_MAC(dstIPaddr, srcMACaddr);
 					
-					// timer restart
 					Thread thread = new Thread(timer_20min);
 					thread.start();
 
@@ -321,6 +318,7 @@ public class ARPLayer implements BaseLayer {
 						} catch (IOException e) { e.printStackTrace(); }
 
 		                ip_addr_temp = srcIPaddr;
+		                
 						Thread thread = new Thread(timer_20min);
 						thread.start();
 
@@ -331,18 +329,17 @@ public class ARPLayer implements BaseLayer {
 
 			}
 			
+			ip_addr_temp = srcIPaddr;
 			add_Table_IP(srcIPaddr);
 			add_Table_MAC(srcIPaddr, srcMACaddr);
-			((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).
-							setChattingArea(srcIPaddr, srcMACaddr, "complete", 0);
-
-			ip_addr_temp = srcIPaddr;
 			Thread thread = new Thread(timer_20min);
 			thread.start();
 
+			((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).
+							setChattingArea(srcIPaddr, srcMACaddr, "complete", 0);
+
 		}
-		// ARP_reply
-		else if (packetfromEtherLayer[7] == (byte)0x02) {
+		else if (opCode == flag_ARPreply) {
 			
 			// source IP address is not mine
 			if (!addr_isEquals(this.my_ip_addr.addr, srcIPaddr)){
