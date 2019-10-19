@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringTokenizer;
 
-class Array {//ip�� �씠�뜑�꽬 二쇱냼瑜� ���옣 �븷 媛앹껜
+class Array {
 	_IP_ADDR ip_addr;
 	_ETHERNET_ADDR mac_addr;
 
@@ -19,7 +19,7 @@ class Array {//ip�� �씠�뜑�꽬 二쇱냼瑜� ���옣 �븷 �
 	}
 }
 
-class _IP_ADDR {// ip二쇱냼 ���옣 媛앹껜
+class _IP_ADDR {
 	byte[] addr = new byte[4];
 
 	public _IP_ADDR() {
@@ -33,7 +33,7 @@ class _IP_ADDR {// ip二쇱냼 ���옣 媛앹껜
 	}
 }
 
-class _ETHERNET_ADDR {//�씠�뜑�꽬 二쇱냼 ���옣 媛앹껜
+class _ETHERNET_ADDR {
 	byte[] addr = new byte[6];
 
 	public _ETHERNET_ADDR() {
@@ -52,6 +52,7 @@ public class ARPLayer implements BaseLayer {
 	public int nUpperLayerCount = 0;
 	public BaseLayer p_UnderLayer = null;
 	public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
+	byte[] ip_addr_temp;
 	public Array[] table = new Array[0];
 	public Array[] proxyTable = new Array[0]; // proxyTable
 	public _IP_ADDR my_ip_addr = new _IP_ADDR();
@@ -59,21 +60,27 @@ public class ARPLayer implements BaseLayer {
 	public _ETHERNET_ADDR newMacAddr;
 	boolean GratuitousFlag = false;
 	
-	
+	public void set_my_ip_addr(byte[] ip_addr) {
+		this.my_ip_addr.addr = ip_addr;
+	}
+	public void set_my_enet_addr(byte[] enet_addr) {
+		this.my_enet_addr.addr = enet_addr;
+	}
 	private class _ARP_HEADER {
-		_IP_ADDR ip_dstaddr;
-		_IP_ADDR ip_srcaddr;
 		
-		_ETHERNET_ADDR enet_dstaddr;
-		_ETHERNET_ADDR enet_srcaddr;
+		byte[] hard_type = {(byte)0x00, (byte)0x01}; //0-1
+		byte[] prot_type = {(byte)0x08, (byte)0x00}; //2-3
+		byte[] hard_size = {(byte)0x06}; //4
+		byte[] prot_size = {(byte)0x04}; //5
+		byte[] op; //6-7
 		
-		byte[] hard_type = {(byte)0x00, (byte)0x01};
-		byte[] prot_type = {(byte)0x08, (byte)0x00};
-		byte[] hard_size = {(byte)0x06};
-		byte[] prot_size = {(byte)0x04};
-		byte[] op;
+		_ETHERNET_ADDR enet_srcaddr; //8-13
+		_IP_ADDR ip_srcaddr; //14-17
 		
-		public _ARP_HEADER() {
+		_ETHERNET_ADDR enet_dstaddr; //18-23
+		_IP_ADDR ip_dstaddr; //24-27
+		
+		public _ARP_HEADER() { //constructor
 			this.ip_dstaddr = new _IP_ADDR();
 			this.ip_srcaddr = new _IP_ADDR();
 			this.enet_srcaddr = new _ETHERNET_ADDR();
@@ -81,26 +88,43 @@ public class ARPLayer implements BaseLayer {
 			this.op = new byte[2];
 		}
 	}
-	
 	_ARP_HEADER ARPRequest = new _ARP_HEADER();
 	
-	Runnable timer_3min = new Runnable() {
-		byte[] temp = ARPRequest.ip_dstaddr.addr;
-		public void run() {
-				try {
-					Thread.sleep(1000*60*3);
-					if(search_table(ARPRequest.ip_dstaddr.addr) == null) {//3遺꾩씠 吏��궃 �떆�젏�뿉�꽌 紐⑹쟻吏��쓽 �씠�뜑�꽬 二쇱냼媛� 異붽� �븞 �릺�뼱�엳�쓣 寃쎌슦
-						System.out.println("TimeOut");
-						((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(temp, null, "", 1);//�젣嫄�
-						Del_ip_addr(temp);
-					}
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-		}
-	};
+	public ARPLayer(String pName) throws UnknownHostException, SocketException {
+		
+		pLayerName = pName;
+		StringTokenizer st = new StringTokenizer(InetAddress.getLocalHost().getHostAddress(), ".");
+		for(int i = 0; i < 4; i++)
+			ARPRequest.ip_srcaddr.addr[i] = (byte) Integer.parseInt(st.nextToken());
+		this.set_my_ip_addr(ARPRequest.ip_srcaddr.addr);
+		
+		// 
+		InetAddress ip = InetAddress.getLocalHost();
+		NetworkInterface netif = NetworkInterface.getByInetAddress(ip);
+		ARPRequest.enet_srcaddr.addr = netif.getHardwareAddress();
+		this.set_my_enet_addr(ARPRequest.enet_srcaddr.addr);
+	}
 	
-	byte[] ip_addr_temp;
+	public boolean addr_isEquals(byte[] addr1, byte[] addr2) {
+		for(int i = 0; i < addr1.length; i++) {
+			if(addr1[i] - addr2[i] != 0)
+				return false;
+		}
+		return true;
+	}
+	
+	public _ETHERNET_ADDR search_table(byte[] ip_addr) {
+		
+		for(int i = 0; i < table.length; i++) {
+			
+			if(addr_isEquals(table[i].ip_addr.addr, ip_addr)) { // IP in table == received IP ?
+				return table[i].mac_addr;
+			}
+			
+		}
+		return null;
+	}
+	
 	
 	Runnable timer_20min = new Runnable() {
 		byte[] ip_addr = ip_addr_temp;
@@ -115,80 +139,22 @@ public class ARPLayer implements BaseLayer {
 
 		}
 	};
-	
-	
-	
-	
-	public void set_my_ip_addr(byte[] ip_addr) {
-		this.my_ip_addr.addr = ip_addr;
-	}
-	
-	public void set_my_enet_addr(byte[] enet_addr) {
-		this.my_enet_addr.addr = enet_addr;
-	}
-	
-	public ARPLayer(String pName) throws UnknownHostException, SocketException {
-		// TODO Auto-generated constructor stub
-		pLayerName = pName;
-		StringTokenizer st = new StringTokenizer(InetAddress.getLocalHost().getHostAddress(), ".");
-		for(int i = 0; i < 4; i++)
-			ARPRequest.ip_srcaddr.addr[i] = (byte) Integer.parseInt(st.nextToken());
-		this.set_my_ip_addr(ARPRequest.ip_srcaddr.addr);
-		InetAddress ip = InetAddress.getLocalHost();
-		NetworkInterface netif = NetworkInterface.getByInetAddress(ip);
-		ARPRequest.enet_srcaddr.addr = netif.getHardwareAddress();
-		this.set_my_enet_addr(ARPRequest.enet_srcaddr.addr);
-	}
-	
-	public boolean addr_isEquals(byte[] addr1, byte[] addr2) {//二쇱냼媛믪쓣 鍮꾧탳
-		for(int i = 0; i < addr1.length; i++) {
-			if(addr1[i] - addr2[i] != 0)
-				return false;
+	Runnable timer_3min = new Runnable() {
+		byte[] temp = ARPRequest.ip_dstaddr.addr;
+		public void run() {
+				try {
+					Thread.sleep(1000*60*3);
+					if(search_table(ARPRequest.ip_dstaddr.addr) == null) {
+						System.out.println("TimeOut");
+						((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(temp, null, "", 1);//�젣嫄�
+						Del_ip_addr(temp);
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 		}
-		return true;
-	}
+	};
 	
-	
-	public _ETHERNET_ADDR search_table(byte[] ip_addr) {
-		
-		for(int i = 0; i < table.length; i++) {
-			
-			if(addr_isEquals(table[i].ip_addr.addr, ip_addr)) { // IP in table == received IP ?
-				return table[i].mac_addr;
-			}
-			
-		}
-		return null;
-	}
-	
-	public void Proxy_Add_ipAndMac_addr(String ip_input, byte[] mac_input) {// �봽濡앹떆 �뀒�씠釉붿뿉 �븘�씠�뵾 二쇱냼�� 留μ＜�냼瑜� ���옣
-		StringTokenizer st = new StringTokenizer(ip_input, ".");
-		byte[] ip_addr = new byte[4];
-		
-		for (int i = 0; i < 4; i++) {
-			ip_addr[i] = (byte) Integer.parseInt(st.nextToken());
-		}
-		
-		Array[] temp = new Array[proxyTable.length + 1];
-		for(int i = 0; i < proxyTable.length; i ++)
-			temp[i] = proxyTable[i];
-		proxyTable = temp.clone();
-		proxyTable[proxyTable.length - 1] = new Array(new _IP_ADDR(ip_addr), new _ETHERNET_ADDR(mac_input));
-	}
-	
-	public void Proxy_Del_ipAndMac_addr(byte[] ip_addr, byte[] enet_addr) {// �봽濡앹떆 �뀒�씠釉� �씤�뜳�뒪 �궘�젣
-		Array[] temp = new Array[proxyTable.length - 1];
-		int i,j;
-		for(i = 0, j = 0; i < proxyTable.length; i++,j++) {
-			if(addr_isEquals(ip_addr, proxyTable[i].ip_addr.addr) && addr_isEquals(enet_addr, proxyTable[i].mac_addr.addr)) {
-				j--;
-				continue;
-			}
-			temp[j] = proxyTable[i];
-		}
-		proxyTable = temp.clone();
-		//ip�젣嫄� 異쒕젰
-	}
 	// cache table
 	public void Add_ip_addr(byte[] ip_addr) { 
 		Array[] temp = new Array[table.length + 1];
@@ -371,7 +337,6 @@ public class ARPLayer implements BaseLayer {
 			((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18),
 					Arrays.copyOfRange(input, 8, 14), "complete", 0);// add
 
-			// ip �씠�뜑�꽬 異쒕젰
 			ip_addr_temp = Arrays.copyOfRange(input, 14, 18);
 			Thread thread = new Thread(timer_20min);
 			thread.start();
@@ -425,6 +390,36 @@ public class ARPLayer implements BaseLayer {
 		
 		return buf;
 	}
+	
+	public void Proxy_Add_ipAndMac_addr(String ip_input, byte[] mac_input) {
+		StringTokenizer st = new StringTokenizer(ip_input, ".");
+		byte[] ip_addr = new byte[4];
+		
+		for (int i = 0; i < 4; i++) {
+			ip_addr[i] = (byte) Integer.parseInt(st.nextToken());
+		}
+		
+		Array[] temp = new Array[proxyTable.length + 1];
+		for(int i = 0; i < proxyTable.length; i ++)
+			temp[i] = proxyTable[i];
+		proxyTable = temp.clone();
+		proxyTable[proxyTable.length - 1] = new Array(new _IP_ADDR(ip_addr), new _ETHERNET_ADDR(mac_input));
+	}
+	
+	public void Proxy_Del_ipAndMac_addr(byte[] ip_addr, byte[] enet_addr) {
+		Array[] temp = new Array[proxyTable.length - 1];
+		int i,j;
+		for(i = 0, j = 0; i < proxyTable.length; i++,j++) {
+			if(addr_isEquals(ip_addr, proxyTable[i].ip_addr.addr) && addr_isEquals(enet_addr, proxyTable[i].mac_addr.addr)) {
+				j--;
+				continue;
+			}
+			temp[j] = proxyTable[i];
+		}
+		proxyTable = temp.clone();
+		//ip�젣嫄� 異쒕젰
+	}
+	
 	
 	@Override
 	public String GetLayerName() {
