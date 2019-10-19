@@ -61,6 +61,11 @@ public class ARPLayer implements BaseLayer {
 	public _ETHERNET_ADDR my_enet_addr = new _ETHERNET_ADDR(); // 0x00
 	public _ETHERNET_ADDR newMacAddr; // for Gratuitous ARP 
 	
+	byte[] flag_ARPrequest = new byte[]{0x00,0x01};
+	byte[] flag_ARPreply = new byte[]{0x00,0x10};
+	byte[] flag_RARPrequest = new byte[]{0x00,0x11};
+	byte[] flag_RARPreply = new byte[]{0x01,0x00};
+	
 	public void set_my_ip_addr(byte[] ip_addr) {
 		this.my_ip_addr.addr = ip_addr;
 	}
@@ -89,7 +94,7 @@ public class ARPLayer implements BaseLayer {
 			this.op = new byte[2];
 		}
 	}
-	_ARP_HEADER ARP_Request = new _ARP_HEADER();
+	_ARP_HEADER packet_ARP = new _ARP_HEADER();
 	
 	public ARPLayer(String pName) throws UnknownHostException, SocketException {
 		
@@ -134,7 +139,7 @@ public class ARPLayer implements BaseLayer {
 		public void run() {
 				try {
 					Thread.sleep(1000*60*20);
-					((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(ARP_Request.ip_dstaddr.addr, null, "", 1);//�젣嫄�
+					((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(packet_ARP.ip_dstaddr.addr, null, "", 1);//�젣嫄�
 					del_Table_IP(this.ip_addr);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -143,11 +148,11 @@ public class ARPLayer implements BaseLayer {
 		}
 	};
 	Runnable timer_3min = new Runnable() {
-		byte[] temp = ARP_Request.ip_dstaddr.addr;
+		byte[] temp = packet_ARP.ip_dstaddr.addr;
 		public void run() {
 				try {
 					Thread.sleep(1000*60*3);
-					if(search_table(ARP_Request.ip_dstaddr.addr) == null) {
+					if(search_table(packet_ARP.ip_dstaddr.addr) == null) {
 						System.out.println("TimeOut");
 						((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(temp, null, "", 1);//�젣嫄�
 						del_Table_IP(temp);
@@ -197,26 +202,26 @@ public class ARPLayer implements BaseLayer {
 		
 	}
 
-	public void sendARPrequest() {
+	public void sendARPpacket() {
 		
-		ARP_Request.op[0] = (byte) 0x00; 
-		ARP_Request.op[1] = (byte) 0x01; 
-		ARP_Request.ip_srcaddr.addr = this.my_ip_addr.addr;
-		ARP_Request.enet_srcaddr.addr = this.my_enet_addr.addr;
+		packet_ARP.op[0] = (byte) 0x00; 
+		packet_ARP.op[1] = (byte) 0x01; 
+		packet_ARP.ip_srcaddr.addr = this.my_ip_addr.addr;
+		packet_ARP.enet_srcaddr.addr = this.my_enet_addr.addr;
 		
-		add_Table_IP(ARP_Request.ip_dstaddr.addr);
+		add_Table_IP(packet_ARP.ip_dstaddr.addr);
 		
 		// send packet to Ethernet Layer
-		byte[] send = ObjToByte(ARP_Request, new byte[0], 0);
+		byte[] send = ObjToByte(packet_ARP, new byte[0], 0);
 		try {((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);	
 		} catch (IOException e) {e.printStackTrace();}
 		
 		// for GUI app display
 		((FileChatDlg)this.GetUpperLayer(0).GetUpperLayer(0).GetUpperLayer(0))
-						.setChattingArea(ARP_Request.ip_dstaddr.addr, null, "incomplete", 0);
+						.setChattingArea(packet_ARP.ip_dstaddr.addr, null, "incomplete", 0);
 		
 	}
-	public boolean Send(byte[] packetFromIP_layer, int length){
+	public boolean Send(byte[] packetFromIP_layer, int length){ // where is ARP reply???
 
 		// parse packet from IP layer
 		byte[] dstIPfromApp = new byte[4];
@@ -226,11 +231,11 @@ public class ARPLayer implements BaseLayer {
 		for (int i = 0; i < 4; i++)
 			srcIPfromIPlayer[i] = packetFromIP_layer[12 + i];
 		
-		// set ARP with dst IP
-		ARP_Request.ip_dstaddr.addr = dstIPfromApp;
+		// set ARP request with dst IP
+		packet_ARP.ip_dstaddr.addr = dstIPfromApp;
 			
 		// search cache table --> has MAC --> display to App
-		if (search_table(ARP_Request.ip_dstaddr.addr) != null) {
+		if (search_table(packet_ARP.ip_dstaddr.addr) != null) {
 						
 			try {((EthernetLayer) this.GetUnderLayer())
 									.SendARP(packetFromIP_layer, packetFromIP_layer.length);
@@ -238,7 +243,7 @@ public class ARPLayer implements BaseLayer {
 		
 		} else {// cache Table has no MAC --> ARP request send
 			
-			sendARPrequest();
+			sendARPpacket();
 			Thread thread = new Thread(timer_3min);
 			thread.start();
 			
@@ -266,11 +271,6 @@ public class ARPLayer implements BaseLayer {
 		byte[] srcIPaddr = Arrays.copyOfRange(packetfromEtherLayer, 14, 18);
 		byte[] dstIPaddr = Arrays.copyOfRange(packetfromEtherLayer, 24, 28);
 		byte[] opCode = Arrays.copyOfRange(packetfromEtherLayer, 6, 8);
-		byte[] flag_ARPrequest = new byte[]{0x00,0x01};
-		byte[] flag_ARPreply = new byte[]{0x00,0x10};
-		byte[] flag_RARPrequest = new byte[]{0x00,0x11};
-		byte[] flag_RARPreply = new byte[]{0x01,0x00};
-		
 
 		if (opCode == flag_ARPrequest) {	
 			
