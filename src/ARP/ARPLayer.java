@@ -218,20 +218,26 @@ public class ARPLayer implements BaseLayer {
 						.setChattingArea(ARP_Request.ip_dstaddr.addr, null, "incomplete", 0);
 		
 	}
-	public boolean Send(byte[] inputFromApp, int length){
+	public boolean Send(byte[] packetFromIP_layer, int length){
 
+		// parse packet from IP layer
+		byte[] dstIPfromApp = new byte[4];
+		byte[] srcIPfromIPlayer = new byte[4];
+		for (int i = 0; i < 4; i++)
+			dstIPfromApp[i] = packetFromIP_layer[16 + i];
+		for (int i = 0; i < 4; i++)
+			srcIPfromIPlayer[i] = packetFromIP_layer[12 + i];
+		
 		// updated MAC addr
 		if(GratuitousFlag == true){
 			
-			// set my IP address as dst IP
+			// set dst IP as my IP address
 			ARP_Request.ip_dstaddr = my_ip_addr;
 
 		} else {
-		
-			for (int i = 0; i < 4; i++)
-				ARP_Request.ip_dstaddr.addr[i] = inputFromApp[16 + i];
-//			for (int i = 0; i < 4; i++)
-//				ARP_Request.ip_srcaddr.addr[i] = inputFromApp[12 + i];
+
+			// set dst IP as received IP from upper layer
+			ARP_Request.ip_dstaddr.addr = dstIPfromApp;
 			
 		}
 		// search cache table --> has IP?
