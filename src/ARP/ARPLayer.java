@@ -234,13 +234,14 @@ public class ARPLayer implements BaseLayer {
 		// set ARP with dst IP
 		ARP_Request.ip_dstaddr.addr = dstIPfromApp;
 			
-		// search cache table --> has IP?
+		// search cache table --> has MAC --> display to App
 		if (search_table(ARP_Request.ip_dstaddr.addr) != null) {
 						
-			try {((EthernetLayer) this.GetUnderLayer()).SendARP(packetFromIP_layer, packetFromIP_layer.length);
+			try {((EthernetLayer) this.GetUnderLayer())
+									.SendARP(packetFromIP_layer, packetFromIP_layer.length);
 			} catch (IOException e) { e.printStackTrace();}
 		
-		} else {// cache Table has no IP --> ARP request send
+		} else {// cache Table has no MAC --> ARP request send
 			
 			sendARPrequest();
 			Thread thread = new Thread(timer_3min);
