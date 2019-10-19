@@ -186,7 +186,7 @@ public class ARPLayer implements BaseLayer {
 				table[i].mac_addr = new _ETHERNET_ADDR(enet_addr);
 			}
 	}
-	public void getNewMacAddr(byte[] macAddr) {
+	public void newMacAddr(byte[] macAddr) {
 		
 		this.newMacAddr = new _ETHERNET_ADDR(macAddr);
 		if(newMacAddr != my_enet_addr) {
@@ -242,11 +242,9 @@ public class ARPLayer implements BaseLayer {
 		}
 		// search cache table --> has IP?
 		if (search_table(ARP_Request.ip_dstaddr.addr) != null) {
-			
-			
-			
-//			try {((EthernetLayer) this.GetUnderLayer()).SendARP(inputFromApp, inputFromApp.length);
-//			} catch (IOException e) { e.printStackTrace();}
+						
+			try {((EthernetLayer) this.GetUnderLayer()).SendARP(packetFromIP_layer, packetFromIP_layer.length);
+			} catch (IOException e) { e.printStackTrace();}
 		
 		} else {// cache Table has no IP --> ARP request send
 			
