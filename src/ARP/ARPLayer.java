@@ -130,7 +130,6 @@ public class ARPLayer implements BaseLayer {
 		return null;
 	}
 	
-	
 	Runnable timer_20min = new Runnable() {
 		byte[] ip_addr = ip_addr_temp;
 		public void run() {
@@ -196,10 +195,10 @@ public class ARPLayer implements BaseLayer {
 
 	public void sendARPrequest() {
 		
-		ARP_Request.ip_dstaddr.addr = this.my_ip_addr.addr;
+		ARP_Request.op[0] = (byte) 0x00; 
+		ARP_Request.op[1] = (byte) 0x01; 
+		ARP_Request.ip_srcaddr.addr = this.my_ip_addr.addr;
 		ARP_Request.enet_srcaddr.addr = this.my_enet_addr.addr;
-		ARP_Request.op[0] = (byte) 0x00;
-		ARP_Request.op[1] = (byte) 0x01;
 		
 		byte[] send = ObjToByte(ARP_Request, new byte[0], 0);
 		try {((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);	
