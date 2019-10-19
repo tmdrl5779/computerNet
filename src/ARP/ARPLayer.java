@@ -96,13 +96,13 @@ public class ARPLayer implements BaseLayer {
 		
 		pLayerName = pName;
 		
-		// set my MAC addr to ARPrequest
+		// set my MAC addr to ARPrequest src MAC addr
 		InetAddress localHost = InetAddress.getLocalHost();
 		NetworkInterface netif = NetworkInterface.getByInetAddress(localHost);
 		ARP_Request.enet_srcaddr.addr = netif.getHardwareAddress();
 		this.set_my_enet_addr(ARP_Request.enet_srcaddr.addr);
 		
-		// set my IP addr to ARPrequest
+		// set my IP addr to ARPrequest src IP addr
 		StringTokenizer st = new StringTokenizer(InetAddress.getLocalHost().getHostAddress(), ".");
 		for(int i = 0; i < 4; i++)
 			ARP_Request.ip_srcaddr.addr[i] = (byte) Integer.parseInt(st.nextToken());
@@ -137,7 +137,7 @@ public class ARPLayer implements BaseLayer {
 				try {
 					Thread.sleep(1000*60*20);
 					((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(ARP_Request.ip_dstaddr.addr, null, "", 1);//�젣嫄�
-					Del_ip_addr(this.ip_addr);
+					del_Table_IP(this.ip_addr);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -152,7 +152,7 @@ public class ARPLayer implements BaseLayer {
 					if(search_table(ARP_Request.ip_dstaddr.addr) == null) {
 						System.out.println("TimeOut");
 						((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(temp, null, "", 1);//�젣嫄�
-						Del_ip_addr(temp);
+						del_Table_IP(temp);
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -160,8 +160,7 @@ public class ARPLayer implements BaseLayer {
 		}
 	};
 	
-	// cache table
-	public void Add_ip_addr(byte[] ip_addr) { 
+	public void add_Table_IP(byte[] ip_addr) { 
 		Array[] temp = new Array[table.length + 1];
 		for(int i = 0; i < table.length; i ++)
 			temp[i] = table[i];
@@ -169,7 +168,7 @@ public class ARPLayer implements BaseLayer {
 		table[table.length - 1] = new Array(new _IP_ADDR(ip_addr), null);
 		
 	}
-	public void Del_ip_addr(byte[] ip_addr) {
+	public void del_Table_IP(byte[] ip_addr) {
 		Array[] temp = new Array[table.length - 1];
 		int i,j;
 		for(i = 0, j = 0; i < table.length; i++,j++) {
@@ -182,7 +181,7 @@ public class ARPLayer implements BaseLayer {
 		table = temp.clone();
 		
 	}
-	public void Add_enet_addr(byte[] ip_addr, byte[] enet_addr) {
+	public void add_Table_MAC(byte[] ip_addr, byte[] enet_addr) {
 		for(int i = 0; i < table.length; i ++)
 			if(addr_isEquals(table[i].ip_addr.addr, ip_addr)) {
 				table[i].mac_addr = new _ETHERNET_ADDR(enet_addr);
@@ -197,20 +196,15 @@ public class ARPLayer implements BaseLayer {
 
 	public void sendARPrequest() {
 		
-		Add_ip_addr(ARP_Request.ip_dstaddr.addr);
+		add_Table_IP(ARP_Request.ip_dstaddr.addr);
 		ARP_Request.enet_srcaddr.addr = this.my_enet_addr.addr;
 		ARP_Request.op[0] = (byte) 0x00;
 		ARP_Request.op[1] = (byte) 0x01;
 		((FileChatDlg)this.GetUpperLayer(0).GetUpperLayer(0).GetUpperLayer(0)).setChattingArea(ARP_Request.ip_dstaddr.addr, null, "incomplete", 0);//add
 		
 		byte[] send = ObjToByte(ARP_Request, new byte[0], 0);
-
-		try {
-			((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		try {((EthernetLayer) this.GetUnderLayer()).SendARP(send, send.length);	
+		} catch (IOException e) {e.printStackTrace();}
 		
 	}
 	public boolean Send(byte[] input, int length){
@@ -276,8 +270,8 @@ public class ARPLayer implements BaseLayer {
 				((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 0);//add
 
 				// 
-				Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
-				Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
+				add_Table_IP(Arrays.copyOfRange(input, 14, 18));
+				add_Table_MAC(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
 
 				byte[] send = makeARPreply(input);
 				
@@ -302,7 +296,7 @@ public class ARPLayer implements BaseLayer {
 				if (search_table(Arrays.copyOfRange(input, 24, 28)).addr != Arrays.copyOfRange(input, 8, 14)) {
 						
 					// add new MAC addr to table
-					Add_enet_addr(Arrays.copyOfRange(input, 24, 28), Arrays.copyOfRange(input, 8, 14));
+					add_Table_MAC(Arrays.copyOfRange(input, 24, 28), Arrays.copyOfRange(input, 8, 14));
 					
 					// timer restart
 					Thread thread = new Thread(timer_20min);
@@ -336,8 +330,8 @@ public class ARPLayer implements BaseLayer {
 
 			}
 			
-			Add_ip_addr(Arrays.copyOfRange(input, 14, 18));
-			Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
+			add_Table_IP(Arrays.copyOfRange(input, 14, 18));
+			add_Table_MAC(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
 			((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18),
 					Arrays.copyOfRange(input, 8, 14), "complete", 0);// add
 
@@ -351,7 +345,7 @@ public class ARPLayer implements BaseLayer {
 			// source IP address is not mine
 						if (!addr_isEquals(this.my_ip_addr.addr, Arrays.copyOfRange(input, 14, 18))){
 
-							Add_enet_addr(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
+							add_Table_MAC(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14));
 							((FileChatDlg)((p_aUpperLayer.get(0)).GetUpperLayer(0)).GetUpperLayer(0)).setChattingArea(Arrays.copyOfRange(input, 14, 18), Arrays.copyOfRange(input, 8, 14), "complete", 2);// add
 
 							
