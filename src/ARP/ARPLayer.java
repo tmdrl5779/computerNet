@@ -94,15 +94,18 @@ public class ARPLayer implements BaseLayer {
 		
 		pLayerName = pName;
 		StringTokenizer st = new StringTokenizer(InetAddress.getLocalHost().getHostAddress(), ".");
-		for(int i = 0; i < 4; i++)
-			ARPRequest.ip_srcaddr.addr[i] = (byte) Integer.parseInt(st.nextToken());
-		this.set_my_ip_addr(ARPRequest.ip_srcaddr.addr);
 		
-		// 
+		// get my MAC addr from InetAddress, NetworkInterface
 		InetAddress ip = InetAddress.getLocalHost();
 		NetworkInterface netif = NetworkInterface.getByInetAddress(ip);
 		ARPRequest.enet_srcaddr.addr = netif.getHardwareAddress();
 		this.set_my_enet_addr(ARPRequest.enet_srcaddr.addr);
+		
+		// set my IP addr to ARPrequest
+		for(int i = 0; i < 4; i++)
+			ARPRequest.ip_srcaddr.addr[i] = (byte) Integer.parseInt(st.nextToken());
+		this.set_my_ip_addr(ARPRequest.ip_srcaddr.addr);
+
 	}
 	
 	public boolean addr_isEquals(byte[] addr1, byte[] addr2) {
@@ -164,7 +167,6 @@ public class ARPLayer implements BaseLayer {
 		table[table.length - 1] = new Array(new _IP_ADDR(ip_addr), null);
 		
 	}
-	// cache table
 	public void Del_ip_addr(byte[] ip_addr) {
 		Array[] temp = new Array[table.length - 1];
 		int i,j;
@@ -178,7 +180,6 @@ public class ARPLayer implements BaseLayer {
 		table = temp.clone();
 		
 	}
-	// cache table
 	public void Add_enet_addr(byte[] ip_addr, byte[] enet_addr) {
 		for(int i = 0; i < table.length; i ++)
 			if(addr_isEquals(table[i].ip_addr.addr, ip_addr)) {
@@ -191,6 +192,7 @@ public class ARPLayer implements BaseLayer {
 		if(newMacAddr != my_enet_addr) GratuitousFlag = true;
 		
 	}
+
 	public void sendARPrequest() {
 		
 		Add_ip_addr(ARPRequest.ip_dstaddr.addr);
