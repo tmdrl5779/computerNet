@@ -14,12 +14,8 @@ public class EthernetLayer implements BaseLayer {
 	public int nUpperLayerCount = 0;
 	public BaseLayer p_UnderLayer = null;
 	public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
-
-	public EthernetLayer(String pName) {
-		// super(pName);
-		pLayerName = pName;
-	}
-
+	
+	public EthernetLayer(String pName) { pLayerName = pName; }
 	private class _ETHERNET_ADDR {
 		private byte[] addr = new byte[6];
 
@@ -32,7 +28,6 @@ public class EthernetLayer implements BaseLayer {
 			this.addr[5] = (byte) 0x00;
 		}
 	}
-
 	private class _ETHERNET_Frame {
 		_ETHERNET_ADDR enet_dstaddr;
 		_ETHERNET_ADDR enet_srcaddr;
@@ -49,6 +44,92 @@ public class EthernetLayer implements BaseLayer {
 
 	_ETHERNET_Frame ethernetHeader = new _ETHERNET_Frame();
 
+	public boolean Send(byte[] input, int length) {
+		byte[] bytes = ObjToByte(ethernetHeader, input, length);
+		this.GetUnderLayer().Send(bytes, length + 14);
+		return true;
+	}
+	public boolean SendARP(byte[] input, int length) throws IOException{
+		byte[] bytes = ObjToByte_ARP(ethernetHeader, input, length);
+		((NILayer)this.GetUnderLayer()).SetAdapterNumber();
+		this.GetUnderLayer().Send(bytes, length + 14);
+		return true;
+	}
+	public boolean Receive(byte[] input) {
+//		if ((input[12] != (byte) 0x20) || (input[13] != (byte) 0x80)) {
+//			if ((input[12]) != (byte)0x20 || (input[13]) != (byte)0x90)
+//				return false;
+//		}
+		
+		byte[] data;
+		byte[] temp_src = this.ethernetHeader.enet_srcaddr.addr;
+		byte[] temp_dst = this.ethernetHeader.enet_dstaddr.addr;
+		int broadCastCount = 0;
+		byte[] temp;	
+		temp = hexStringToByteArray("FF");
+		
+		for (int i = 0; i < 6; i++) {
+			if (input[i] != temp_src[i] || input[i + 6] != temp_dst[i]) {
+				if (input[i] == temp[0]) { // broadcast
+ 
+					broadCastCount++;
+					if (broadCastCount == i + 1)
+						continue;
+				}
+
+				return false;
+			}
+		}
+//		if ((input[12]) == (byte)0x20 && (input[13]) == (byte)0x90) {
+//			data = RemoveEtherHeader(input, input.length);
+//			this.GetUpperLayer(1).Receive(data);
+//			return true;
+//		}
+		if (this.isItMyPacket(input))
+			return false;
+
+		if (this.isItARP(input)) {
+			data = RemoveEtherHeader(input, input.length);
+			this.GetUpperLayer(0).Receive(data);
+			return true;
+		}
+
+		if (this.isItIP(input)) {
+			data = RemoveEtherHeader(input, input.length);
+			this.GetUpperLayer(1).Receive(data);
+			return true;
+		}
+		
+//		data = RemoveEtherHeader(input, input.length);
+//		this.GetUpperLayer(1).Receive(data);
+		return false;
+	}
+	public boolean isItARP(byte[] head) {
+		if ((head[12]) == (byte)0x08 && (head[13]) == (byte)0x06)
+			return true;
+		else
+			return false;
+	}
+	public boolean isItIP(byte[] head) {
+		if ((head[12]) == (byte)0x08 && (head[13]) == (byte)0x00)
+			return true;
+		else
+			return false;
+	}
+	public boolean isItMyPacket(byte[] head) {
+		for (int i = 0; i <= 5; i++) {
+			if (head[i] != head[i + 6])
+				return false;
+		}
+		
+		return true;
+	}
+	public byte[] RemoveEtherHeader(byte[] input, int length) {
+		byte[] data = new byte[length - 14];
+		for (int i = 0; i < length - 14; i++) 
+			data[i] = input[14 + i];
+		return data;
+	}
 	public byte[] ObjToByte(_ETHERNET_Frame Header, byte[] input, int length) {
 		byte[] buf = new byte[length + 14];
 		byte[] srctemp = Header.enet_srcaddr.addr;
@@ -123,6 +204,12 @@ public class EthernetLayer implements BaseLayer {
 		return buf;
 	}
 	
+	/**
+	public boolean SendFile(byte[] input, int length) {
+		byte[] bytes = ObjToByte_File(ethernetHeader, input, length);
+		this.GetUnderLayer().Send(bytes, length + 14);
+		return true;
+	}
 	public byte[] ObjToByte_File(_ETHERNET_Frame Header, byte[] input, int length) {
 		byte[] buf = new byte[length + 14];
 		byte[] srctemp = Header.enet_srcaddr.addr;
@@ -148,111 +235,7 @@ public class EthernetLayer implements BaseLayer {
 
 		return buf;
 	}
-
-	public boolean Send(byte[] input, int length) {
-		byte[] bytes = ObjToByte(ethernetHeader, input, length);
-		this.GetUnderLayer().Send(bytes, length + 14);
-		return true;
-	}
-	
-	public boolean SendFile(byte[] input, int length) {
-		byte[] bytes = ObjToByte_File(ethernetHeader, input, length);
-		this.GetUnderLayer().Send(bytes, length + 14);
-		return true;
-	}
-	
-	public boolean SendARP(byte[] input, int length) throws IOException{
-		byte[] bytes = ObjToByte_ARP(ethernetHeader, input, length);
-		((NILayer)this.GetUnderLayer()).SetAdapterNumber();
-		this.GetUnderLayer().Send(bytes, length + 14);
-		return true;
-	}
-
-	public boolean Receive(byte[] input) {
-//		if ((input[12] != (byte) 0x20) || (input[13] != (byte) 0x80)) {
-//			if ((input[12]) != (byte)0x20 || (input[13]) != (byte)0x90)
-//				return false;
-//		}
-		
-		byte[] data;
-		byte[] temp_src = this.ethernetHeader.enet_srcaddr.addr;
-		byte[] temp_dst = this.ethernetHeader.enet_dstaddr.addr;
-		int broadCastCount = 0;
-		byte[] temp;	
-		temp = hexStringToByteArray("FF");
-		
-		for (int i = 0; i < 6; i++) {
-			if (input[i] != temp_src[i] || input[i + 6] != temp_dst[i]) {
-				if (input[i] == temp[0]) { // broadcast
- 
-					broadCastCount++;
-					if (broadCastCount == i + 1)
-						continue;
-				}
-
-				return false;
-			}
-		}
-		// ����
-//		if ((input[12]) == (byte)0x20 && (input[13]) == (byte)0x90) {
-//			data = RemoveEtherHeader(input, input.length);
-//			this.GetUpperLayer(1).Receive(data);
-//			return true;
-//		}
-		if (this.isItMyPacket(input))
-			return false;
-		
-		// ������ ��� Ÿ���� ARP�� ARPLayer�� �ø�
-		if (this.isItARP(input)) {
-			data = RemoveEtherHeader(input, input.length);
-			this.GetUpperLayer(0).Receive(data);
-			return true;
-		}
-		
-		// ������ ��� Ÿ���� IP�� IPLayer�� �ø�
-		if (this.isItIP(input)) {
-			data = RemoveEtherHeader(input, input.length);
-			this.GetUpperLayer(1).Receive(data);
-			return true;
-		}
-		
-//		data = RemoveEtherHeader(input, input.length);
-//		this.GetUpperLayer(1).Receive(data);
-		return false;
-	}
-	
-	// ������ ��� Ÿ�԰˻��Ͽ� ARP���� Ȯ��
-	public boolean isItARP(byte[] head) {
-		if ((head[12]) == (byte)0x08 && (head[13]) == (byte)0x06)
-			return true;
-		else
-			return false;
-	}
-	
-	// ������ ��� Ÿ�԰˻��Ͽ� IP���� Ȯ��
-	public boolean isItIP(byte[] head) {
-		if ((head[12]) == (byte)0x08 && (head[13]) == (byte)0x00)
-			return true;
-		else
-			return false;
-	}
-	
-	// dst�� src�� ������ ���� ��Ŷ
-	public boolean isItMyPacket(byte[] head) {
-		for (int i = 0; i <= 5; i++) {
-			if (head[i] != head[i + 6])
-				return false;
-		}
-		
-		return true;
-	}
-	
-	public byte[] RemoveEtherHeader(byte[] input, int length) {
-		byte[] data = new byte[length - 14];
-		for (int i = 0; i < length - 14; i++) 
-			data[i] = input[14 + i];
-		return data;
-	}
+	**/
 
 	@Override
 	public String GetLayerName() {
