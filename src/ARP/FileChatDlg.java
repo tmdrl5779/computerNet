@@ -506,15 +506,22 @@ public class FileChatDlg extends JFrame implements BaseLayer {
       areaTable = temp.clone();
    }
 
-   public void del_areaTable(String ip_addr) {
-      String[] temp = new String[areaTable.length - 1];
-      for (int i = 0, j = 0; i < areaTable.length; i++)
-         if (!areaTable[i].contains(ip_addr)) {
-            temp[j] = areaTable[i];
-            j++;
-         }
-      areaTable = temp.clone();
-   }
+public void del_areaTable(String ip_addr) {
+		if (areaTable.length > 1) {
+			String[] temp = new String[areaTable.length - 1];
+			for (int i = 0, j = 0; i < areaTable.length; i++, j++) {
+				if (areaTable[i].contains(ip_addr)) {
+					j--;
+					continue;
+				}
+				temp[j] = areaTable[i];
+			}
+			areaTable = temp.clone();
+		}
+		else {
+			areaTable = new String[0];
+		}
+	}
    public static String byteArrayToHexString_ip_mac(byte[] bytes) {
       StringBuilder sb = new StringBuilder();
       String s = ".";
