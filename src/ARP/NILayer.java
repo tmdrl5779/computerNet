@@ -121,6 +121,7 @@ public class NILayer implements BaseLayer {
 		Receive_Thread thread = new Receive_Thread(m_AdapterObject, this.GetUpperLayer(0));
 		Thread obj = new Thread(thread);
 		obj.start();
+		System.out.println("NI");
 		return false;
 	}
 
